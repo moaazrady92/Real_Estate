@@ -19,6 +19,7 @@ def run_aqarmap_scraper(location_path, max_pages=3):
                 defaults={
                     "title": item["title"],
                     "price": item["price"],
+                    "city" : item["city"],
                     "address": item["address"],
                     "source": "aqarmap",
                 },

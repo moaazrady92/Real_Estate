@@ -11,13 +11,31 @@ class AqarmapScraper:
                       "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
     }
 
+    # Map URL slugs to human-readable city names
+    CITY_NAMES = {
+        "cairo": "cairo",
+        "alexandria": "alexandria",
+        "giza": "giza",
+        "new-capital": "new_capital",
+        "6th-of-october": "6th_of_october",
+        "sharm-el-sheikh": "sharm_el_sheikh",
+        "hurghada": "hurghada",
+        "mansoura": "mansoura",
+        "tanta": "tanta",
+        "luxor": "luxor",
+        "aswan": "aswan",
+        "suez": "suez",
+        "ismailia": "ismailia",
+        "port-said": "port_said",
+        "zagazig": "zagazig",
+    }
     def __init__(self, location_path, max_pages=3):
-        """
-        location_path example: "for-sale/property-type/alexandria/sydy-bshr/sydy-bshr-qbly/cairo-st"
-        (copy this from the real Aqarmap URL, minus the leading /en/)
-        """
         self.location_path = location_path.strip("/")
         self.max_pages = max_pages
+        # Extract city slug from path e.g. "for-sale/property-type/cairo" → "cairo"
+        parts = self.location_path.split("/")
+        self.city_slug = parts[-1] if parts else "unknown"
+        self.city_name = self.CITY_NAMES.get(self.city_slug, self.city_slug.replace("-", " ").title())
 
     def build_url(self, page=1):
         base = f"{self.BASE_URL}/en/{self.location_path}/"
@@ -46,14 +64,20 @@ class AqarmapScraper:
             return {
                 "title": title_el.get("title") or title_el.get_text(strip=True),
                 "price": float(price_el.get("value")) if price_el and price_el.get("value") else 0.0,
+                "city": self.city_name,      # ← extracted from location path
                 "address": address,
                 "source_url": self._absolute_url(link_el.get("href", "")),
-                "image_url": img_el.get("src") if img_el else None,
+                "image_url": self._get_image_url(img_el),
                 "source": "aqarmap",
             }
         except Exception as e:
             print(f"Failed to parse card: {e}")
             return None
+
+    def _get_image_url(self, img_el):
+        if not img_el:
+            return None
+        return img_el.get("data-src") or img_el.get("src")
 
     def _absolute_url(self, href):
         if href.startswith("http"):
@@ -64,9 +88,13 @@ class AqarmapScraper:
         all_listings = []
         for page in range(1, self.max_pages + 1):
             url = self.build_url(page)
-            html = self.fetch_page(url)
-            soup = BeautifulSoup(html, "html.parser")
+            try:
+                html = self.fetch_page(url)
+            except Exception as e:
+                print(f"Failed to fetch {url}: {e}")
+                break
 
+            soup = BeautifulSoup(html, "html.parser")
             cards = soup.select("article.listing-card")
             if not cards:
                 break

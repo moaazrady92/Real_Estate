@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Third party
+    "rest_framework_simplejwt.token_blacklist",
     "rest_framework",
     "django_filters",
     "django_celery_beat",

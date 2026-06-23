@@ -15,7 +15,7 @@ class ListingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Listing
         fields = [
-            "id", "title", "description", "price", "address",
+            "id", "title", "description", "price", "address","city",
             "source", "source_url", "owner", "owner_username",
             "is_active", "created_at", "updated_at", "images",
         ]
@@ -23,14 +23,13 @@ class ListingSerializer(serializers.ModelSerializer):
 
 
 class ListingCreateSerializer(serializers.ModelSerializer):
-    """Used only for user-posted listings (POST requests)."""
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(), write_only=True, required=False
     )
 
     class Meta:
         model = Listing
-        fields = ["title", "description", "price", "address", "uploaded_images"]
+        fields = ["title", "description", "price","city","address", "uploaded_images"]
 
     def create(self, validated_data):
         images = validated_data.pop("uploaded_images", [])

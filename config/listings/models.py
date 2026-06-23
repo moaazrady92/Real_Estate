@@ -3,6 +3,23 @@ from django.conf import settings
 
 
 class Listing(models.Model):
+    CITY_CHOICES = [
+        ("cairo", "Cairo"),
+        ("alexandria", "Alexandria"),
+        ("giza", "Giza"),
+        ("new_capital", "New Capital"),
+        ("6th_of_october", "6th of October"),
+        ("sharm_el_sheikh", "Sharm El Sheikh"),
+        ("hurghada", "Hurghada"),
+        ("mansoura", "Mansoura"),
+        ("tanta", "Tanta"),
+        ("luxor", "Luxor"),
+        ("aswan", "Aswan"),
+        ("suez", "Suez"),
+        ("ismailia", "Ismailia"),
+        ("port_said", "Port Said"),
+        ("zagazig", "Zagazig"),
+    ]
     SOURCE_CHOICES = [
         ("manual", "User Posted"),
         ("dubizzle", "Dubizzle"),
@@ -12,7 +29,8 @@ class Listing(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=12, decimal_places=2)
-    address = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=50, choices=CITY_CHOICES, blank=True)
+    address = models.CharField(max_length=300, blank=True)
     source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default="manual")
     source_url = models.URLField(blank=True, null=True, unique=True)
     owner = models.ForeignKey(
@@ -20,7 +38,7 @@ class Listing(models.Model):
         on_delete=models.CASCADE,
         related_name="listings",
         null=True,
-        blank=True,  # null = scraped listing, not posted by a user
+        blank=True,
     )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -29,6 +47,7 @@ class Listing(models.Model):
     class Meta:
         ordering = ["-created_at"]
         indexes = [
+            models.Index(fields=["city"]),
             models.Index(fields=["source"]),
         ]
 
