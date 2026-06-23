@@ -3,6 +3,11 @@ from django.conf import settings
 
 
 class Listing(models.Model):
+    LISTING_TYPE_CHOICES = [
+        ("for_sale", "For Sale"),
+        ("for_rent", "For Rent"),
+    ]
+
     CITY_CHOICES = [
         ("cairo", "Cairo"),
         ("alexandria", "Alexandria"),
@@ -20,17 +25,20 @@ class Listing(models.Model):
         ("port_said", "Port Said"),
         ("zagazig", "Zagazig"),
     ]
+
     SOURCE_CHOICES = [
         ("manual", "User Posted"),
-        ("dubizzle", "Dubizzle"),
+        ("bayut", "Bayut"),
         ("aqarmap", "Aqarmap"),
         ("facebook", "Facebook Marketplace"),
     ]
+
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=12, decimal_places=2)
     city = models.CharField(max_length=50, choices=CITY_CHOICES, blank=True)
     address = models.CharField(max_length=300, blank=True)
+    listing_type = models.CharField(max_length=10, choices=LISTING_TYPE_CHOICES, blank=True)
     source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default="manual")
     source_url = models.URLField(blank=True, null=True, unique=True)
     owner = models.ForeignKey(
@@ -49,11 +57,11 @@ class Listing(models.Model):
         indexes = [
             models.Index(fields=["city"]),
             models.Index(fields=["source"]),
+            models.Index(fields=["listing_type"]),
         ]
 
     def __str__(self):
         return f"{self.title}"
-
 
 class ListingImage(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="images")

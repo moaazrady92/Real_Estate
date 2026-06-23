@@ -11,6 +11,13 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ["id", "listing", "listing_detail", "created_at"]
         read_only_fields = ["id", "created_at"]
 
+    def validate(self, attrs):
+        user = self.context["request"].user
+        listing = attrs["listing"]
+        if Favorite.objects.filter(user=user, listing=listing).exists():
+            raise serializers.ValidationError("You already favorited this listing.")
+        return attrs
+
     def create(self, validated_data):
         validated_data["user"] = self.context["request"].user
         return super().create(validated_data)

@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import time
-import re
 
 
 class AqarmapScraper:
@@ -11,7 +10,6 @@ class AqarmapScraper:
                       "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
     }
 
-    # Map URL slugs to human-readable city names
     CITY_NAMES = {
         "cairo": "cairo",
         "alexandria": "alexandria",
@@ -29,13 +27,17 @@ class AqarmapScraper:
         "port-said": "port_said",
         "zagazig": "zagazig",
     }
+
     def __init__(self, location_path, max_pages=3):
         self.location_path = location_path.strip("/")
         self.max_pages = max_pages
-        # Extract city slug from path e.g. "for-sale/property-type/cairo" → "cairo"
+
         parts = self.location_path.split("/")
         self.city_slug = parts[-1] if parts else "unknown"
         self.city_name = self.CITY_NAMES.get(self.city_slug, self.city_slug.replace("-", " ").title())
+
+        # Extract listing type from path
+        self.listing_type = "for_sale" if "for-sale" in self.location_path else "for_rent"
 
     def build_url(self, page=1):
         base = f"{self.BASE_URL}/en/{self.location_path}/"
@@ -64,8 +66,9 @@ class AqarmapScraper:
             return {
                 "title": title_el.get("title") or title_el.get_text(strip=True),
                 "price": float(price_el.get("value")) if price_el and price_el.get("value") else 0.0,
-                "city": self.city_name,      # ← extracted from location path
+                "city": self.city_name,
                 "address": address,
+                "listing_type": self.listing_type,
                 "source_url": self._absolute_url(link_el.get("href", "")),
                 "image_url": self._get_image_url(img_el),
                 "source": "aqarmap",
