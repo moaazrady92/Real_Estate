@@ -46,5 +46,10 @@ else:
     print('Periodic task already exists.');
 "
 
-echo "Starting server..."
-exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3
+if [ "$1" = "celery" ]; then
+    echo "Starting Celery..."
+    exec $*
+else
+    echo "Starting server..."
+    exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3
+fi
