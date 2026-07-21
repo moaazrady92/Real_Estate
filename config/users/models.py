@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
 
 
 class UserManager(BaseUserManager):
@@ -45,3 +47,27 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.display_name or self.first_name} ({self.email})"
+
+
+class PasswordResetCode(models.Model):
+    email = models.EmailField()
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+
+    def is_valid(self):
+        return not self.used and timezone.now() < self.expires_at
+
+    @classmethod
+    def create_code(cls, email, expiry_minutes=10):
+        import random
+        code = "".join([str(random.randint(0, 9)) for _ in range(6)])
+        return cls.objects.create(
+            email=email,
+            code=code,
+            expires_at=timezone.now() + timedelta(minutes=expiry_minutes),
+        )
+
+    class Meta:
+        ordering = ["-created_at"]

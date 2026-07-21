@@ -1,6 +1,9 @@
 import asyncio
+import logging
 import re
 from playwright.async_api import async_playwright
+
+logger = logging.getLogger(__name__)
 
 
 class NawyScraper:
@@ -66,7 +69,7 @@ class NawyScraper:
                         cards = await page.query_selector_all(
                             "a[data-testid='search-result-card-link']"
                         )
-                        print(f"[Nawy] {params} page {page_num}: {len(cards)} cards")
+                        logger.info("[Nawy] %s page %d: %d cards", params, page_num, len(cards))
 
                         if not cards:
                             break
@@ -77,7 +80,7 @@ class NawyScraper:
                                 all_listings.append(listing)
 
                     except Exception as e:
-                        print(f"[Nawy] Failed on {params} page {page_num}: {e}")
+                        logger.error("[Nawy] Failed on %s page %d: %s", params, page_num, e)
                         break
                 await page.close()
 
@@ -141,7 +144,7 @@ class NawyScraper:
             }
 
         except Exception as e:
-            print(f"[Nawy] Card parse error: {e}")
+            logger.warning("[Nawy] Card parse error: %s", e)
             return None
 
     def _parse_price(self, text):

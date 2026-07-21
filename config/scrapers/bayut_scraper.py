@@ -1,6 +1,9 @@
 import asyncio
+import logging
 from playwright.async_api import async_playwright
 import re
+
+logger = logging.getLogger(__name__)
 
 
 class BayutScraper:
@@ -56,7 +59,7 @@ class BayutScraper:
             for url, listing_type in self.URLS:
                 listings = await self._scrape_url(context, url, listing_type)
                 all_listings.extend(listings)
-                print(f"[Bayut] {url} → {len(listings)} listings")
+                logger.info("[Bayut] %s -> %d listings", url, len(listings))
             await browser.close()
         return all_listings
 
@@ -71,7 +74,7 @@ class BayutScraper:
                 await page.wait_for_timeout(3000)
 
                 cards = await page.query_selector_all("article")
-                print(f"[Bayut] Page {page_num}: {len(cards)} cards")
+                logger.info("[Bayut] Page %d: %d cards", page_num, len(cards))
 
                 if not cards:
                     break
@@ -82,7 +85,7 @@ class BayutScraper:
                         results.append(listing)
 
             except Exception as e:
-                print(f"[Bayut] Failed on {url}: {e}")
+                logger.error("[Bayut] Failed on %s: %s", url, e)
                 break
 
         await page.close()
@@ -142,7 +145,7 @@ class BayutScraper:
             }
 
         except Exception as e:
-            print(f"[Bayut] Card parse error: {e}")
+            logger.warning("[Bayut] Card parse error: %s", e)
             return None
 
     def _parse_price(self, text):

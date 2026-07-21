@@ -1,6 +1,9 @@
+import logging
 import requests
 from bs4 import BeautifulSoup
 import time
+
+logger = logging.getLogger(__name__)
 
 
 class AqarmapScraper:
@@ -74,7 +77,7 @@ class AqarmapScraper:
                 "source": "aqarmap",
             }
         except Exception as e:
-            print(f"Failed to parse card: {e}")
+            logger.warning("Failed to parse card: %s", e)
             return None
 
     def _get_image_url(self, img_el):
@@ -94,7 +97,7 @@ class AqarmapScraper:
             try:
                 html = self.fetch_page(url)
             except Exception as e:
-                print(f"Failed to fetch {url}: {e}")
+                logger.error("Failed to fetch %s: %s", url, e)
                 break
 
             soup = BeautifulSoup(html, "html.parser")

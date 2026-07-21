@@ -1,5 +1,10 @@
+import logging
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from .models import PasswordResetCode
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -89,6 +94,42 @@ class UserSerializer(serializers.ModelSerializer):
         from listings.serializers import ListingSerializer
         qs = obj.listings.filter(is_active=True)
         return ListingSerializer(qs, many=True, context=self.context).data
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("No account found with this email.")
+        return value
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.CharField(max_length=6)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate(self, attrs):
+        email = attrs["email"]
+        code = attrs["code"]
+
+        try:
+            reset_code = PasswordResetCode.objects.filter(
+                email=email, code=code, used=False
+            ).latest("created_at")
+        except PasswordResetCode.DoesNotExist:
+            raise serializers.ValidationError({"code": "Invalid or expired code."})
+
+        if not reset_code.is_valid():
+            raise serializers.ValidationError({"code": "Invalid or expired code."})
+
+        attrs["reset_code"] = reset_code
+        return attrs
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
 
     def get_favorites(self, obj):
         if obj.role != "buyer":
