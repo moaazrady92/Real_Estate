@@ -21,16 +21,25 @@ class ListingImageSerializer(serializers.ModelSerializer):
 
 class ListingSerializer(serializers.ModelSerializer):
     images = ListingImageSerializer(many=True, read_only=True)
-    owner_username = serializers.CharField(source="owner.username", read_only=True)
+    primary_image_url = serializers.ReadOnlyField()
+    owner_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Listing
         fields = [
             "id", "title", "description", "price", "city", "address",
-            "listing_type", "source", "source_url", "owner", "owner_username",
-            "is_active", "created_at", "updated_at", "images",
+            "listing_type", "source", "source_url", "owner", "owner_name",
+            "bedrooms", "bathrooms", "area", "rating",
+            "latitude", "longitude",
+            "is_active", "created_at", "updated_at",
+            "images", "primary_image_url",
         ]
         read_only_fields = ["id", "source", "source_url", "owner", "created_at", "updated_at"]
+
+    def get_owner_name(self, obj):
+        if obj.owner:
+            return obj.owner.display_name or obj.owner.first_name
+        return None
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -49,7 +58,10 @@ class ListingCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Listing
-        fields = ["title", "description", "price", "city", "address", "listing_type", "uploaded_images"]
+        fields = [
+            "title", "description", "price", "city", "address",
+            "listing_type", "bedrooms", "bathrooms", "area", "uploaded_images",
+        ]
 
     def validate_city(self, value):
         valid = [c[0] for c in Listing.CITY_CHOICES]
@@ -71,6 +83,10 @@ class ListingCreateSerializer(serializers.ModelSerializer):
             source="manual",
             **validated_data,
         )
-        for img in images:
-            ListingImage.objects.create(listing=listing, image=img)
+        for i, img in enumerate(images):
+            ListingImage.objects.create(
+                listing=listing,
+                image=img,
+                is_primary=(i == 0),
+            )
         return listing

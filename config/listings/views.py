@@ -7,6 +7,7 @@ from django.db.models.expressions import OrderBy
 from rest_framework import viewsets, permissions, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Listing, ListingImage
 from .serializers import ListingSerializer, ListingCreateSerializer
@@ -29,20 +30,74 @@ class IsSellerOrReadOnly(permissions.BasePermission):
 
 
 class ListingViewSet(viewsets.ModelViewSet):
-    queryset = Listing.objects.filter(is_active=True)
+    queryset = Listing.objects.filter(is_active=True).prefetch_related("images")
     permission_classes = [IsSellerOrReadOnly, IsOwnerOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_class = ListingFilter
     search_fields = ["title", "description", "address", "city"]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_serializer_class(self):
-        if self.action == "create":
+        if self.action in ["create", "update", "partial_update"]:
             return ListingCreateSerializer
         return ListingSerializer
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
+    def perform_create(self, serializer):
+        serializer.save()
 
     def perform_destroy(self, instance):
         instance.is_active = False
         instance.save()
+
+    @action(detail=True, methods=["post"], url_path="add-images")
+    def add_images(self, request, pk=None):
+        listing = self.get_object()
+        if listing.owner != request.user:
+            return Response({"detail": "Not allowed."}, status=403)
+        images = request.FILES.getlist("uploaded_images")
+        if not images:
+            return Response({"detail": "No images provided."}, status=400)
+        created = []
+        for img in images:
+            obj = ListingImage.objects.create(listing=listing, image=img, is_primary=False)
+            created.append(obj.id)
+        return Response({"status": "images added", "image_ids": created}, status=201)
+
+    @action(detail=True, methods=["delete"], url_path="images/(?P<image_id>[^/.]+)")
+    def delete_image(self, request, pk=None, image_id=None):
+        listing = self.get_object()
+        if listing.owner != request.user:
+            return Response({"detail": "Not allowed."}, status=403)
+        try:
+            image = listing.images.get(id=image_id)
+            image.delete()
+            if not listing.images.filter(is_primary=True).exists():
+                first = listing.images.first()
+                if first:
+                    first.is_primary = True
+                    first.save()
+            return Response(status=204)
+        except ListingImage.DoesNotExist:
+            return Response({"detail": "Image not found."}, status=404)
+
+    @action(detail=True, methods=["patch"], url_path="images/(?P<image_id>[^/.]+)/set-primary")
+    def set_primary_image(self, request, pk=None, image_id=None):
+        listing = self.get_object()
+        if listing.owner != request.user:
+            return Response({"detail": "Not allowed."}, status=403)
+        listing.images.update(is_primary=False)
+        try:
+            image = listing.images.get(id=image_id)
+            image.is_primary = True
+            image.save()
+            return Response({"status": "primary image updated"})
+        except ListingImage.DoesNotExist:
+            return Response({"detail": "Image not found."}, status=404)
 
 
 # ──────────────────────────────────────────────────
@@ -175,6 +230,23 @@ def create_listing(request):
         return render(request, "listings/create.html", {"errors": errors})
 
     return render(request, "listings/create.html")
+
+
+@login_required
+def delete_listing(request, pk):
+    listing = get_object_or_404(Listing, pk=pk)
+
+    if listing.owner != request.user:
+        messages.error(request, "You can only delete your own listings.")
+        return redirect("listing_detail", pk=pk)
+
+    if request.method == "POST":
+        listing.is_active = False
+        listing.save()
+        messages.success(request, "Listing deleted successfully.")
+        return redirect("home")
+
+    return redirect("listing_detail", pk=pk)
 
 
 @login_required
