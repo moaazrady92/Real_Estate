@@ -58,13 +58,15 @@ class AqarmapScraper:
             link_el = card.select_one("a[href*='/listing/']")
             price_el = card.select_one("data")
             title_el = card.select_one("h2[id^='listing-']")
-            img_el = card.select_one("img")
+            img_els = card.select("img")
             address_links = card.select("header .flex.text-caption-1 a")
 
             if not link_el or not title_el:
                 return None
 
             address = " / ".join(a.get_text(strip=True) for a in address_links) if address_links else ""
+            source_url = self._absolute_url(link_el.get("href", ""))
+            image_urls = self._get_all_image_urls(img_els)
 
             return {
                 "title": title_el.get("title") or title_el.get_text(strip=True),
@@ -72,18 +74,71 @@ class AqarmapScraper:
                 "city": self.city_name,
                 "address": address,
                 "listing_type": self.listing_type,
-                "source_url": self._absolute_url(link_el.get("href", "")),
-                "image_url": self._get_image_url(img_el),
+                "source_url": source_url,
+                "image_urls": image_urls,
                 "source": "aqarmap",
             }
         except Exception as e:
             logger.warning("Failed to parse card: %s", e)
             return None
 
-    def _get_image_url(self, img_el):
-        if not img_el:
-            return None
-        return img_el.get("data-src") or img_el.get("src")
+    def _get_all_image_urls(self, img_els):
+        urls = []
+        seen = set()
+        for img_el in img_els:
+            url = img_el.get("data-src") or img_el.get("src")
+            if url and url not in seen:
+                seen.add(url)
+                urls.append(url)
+        return urls
+
+    def scrape_detail(self, source_url):
+        try:
+            html = self.fetch_page(source_url)
+            soup = BeautifulSoup(html, "html.parser")
+        except Exception as e:
+            logger.warning("[Aqarmap] Failed to fetch detail %s: %s", source_url, e)
+            return {}
+
+        detail = {}
+
+        desc_el = (
+            soup.select_one(".description, .listing-description, [class*='description']")
+            or soup.select_one("div[class*='about']")
+        )
+        if desc_el:
+            detail["description"] = desc_el.get_text(strip=True)[:2000]
+
+        # Extra images from detail page
+        extra_imgs = []
+        for img in soup.select(".listing-image img, .gallery img, [class*='slider'] img, .swiper-slide img"):
+            url = img.get("data-src") or img.get("src")
+            if url and "placehold" not in url:
+                extra_imgs.append(url)
+        detail["extra_image_urls"] = extra_imgs
+
+        # Features: beds, baths, area
+        for label_el in soup.select(".feature-item, .property-feature, li[class*='feature'], [class*='spec']"):
+            text = label_el.get_text(strip=True).lower()
+            if "bed" in text and "bedroom" not in detail.get("_found_beds"):
+                import re
+                num = re.search(r"(\d+)", text)
+                if num:
+                    detail["bedrooms"] = int(num.group(1))
+                    detail["_found_beds"] = True
+            if "bath" in text and "bathroom" not in detail.get("_found_baths"):
+                import re
+                num = re.search(r"(\d+)", text)
+                if num:
+                    detail["bathrooms"] = int(num.group(1))
+                    detail["_found_baths"] = True
+            if "sqm" in text or "m²" in text or "meter" in text or "area" in text:
+                import re
+                num = re.search(r"(\d+)", text)
+                if num and "area" not in detail:
+                    detail["area"] = int(num.group(1))
+
+        return detail
 
     def _absolute_url(self, href):
         if href.startswith("http"):

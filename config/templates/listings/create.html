@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Listing | LUXOR ESTATE{% endblock %}
+
+{% block content %}
+<div class="max-w-container-max mx-auto px-base md:px-xl py-lg">
+    <a href="{% url 'home' %}" class="inline-flex items-center gap-xs text-outline hover:text-primary transition-colors mb-md text-body-md">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Back to Listings
+    </a>
+
+    <div class="max-w-[700px] mx-auto">
+        <div class="glass-card rounded-xl shadow-[0px_4px_20px_rgba(198,165,85,0.04)] overflow-hidden">
+            <div class="p-lg md:p-xl">
+
+                <div class="text-center mb-lg">
+                    <h1 class="text-h2 font-h2 text-primary">Post a Property</h1>
+                    <p class="text-body-md text-on-surface-variant">Share your property with thousands of buyers.</p>
+                </div>
+
+                {% if messages %}
+                <div class="space-y-xs mb-md">
+                    {% for message in messages %}
+                    <div class="p-sm bg-primary-container/20 border border-primary rounded-lg">
+                        <p class="text-primary text-body-md">{{ message }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="POST" action="{% url 'create_listing' %}" enctype="multipart/form-data" class="space-y-md">
+                    {% csrf_token %}
+
+                    <div class="flex flex-col gap-xs">
+                        <label class="text-label-sm text-on-surface-variant uppercase" for="title">Title *</label>
+                        <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="title" name="title" placeholder="e.g. Luxury Villa with Nile View" required type="text"/>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm text-on-surface-variant uppercase" for="price">Price (EGP) *</label>
+                            <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="price" name="price" placeholder="1,500,000" required type="number" step="0.01" min="0.01"/>
+                        </div>
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm text-on-surface-variant uppercase" for="listing_type">Listing Type *</label>
+                            <select class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="listing_type" name="listing_type" required>
+                                <option value="for_sale">For Sale</option>
+                                <option value="for_rent">For Rent</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm text-on-surface-variant uppercase" for="city">City *</label>
+                            <select class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="city" name="city" required>
+                                <option value="">Select City</option>
+                                <option value="cairo">Cairo</option>
+                                <option value="alexandria">Alexandria</option>
+                                <option value="giza">Giza</option>
+                                <option value="new_capital">New Capital</option>
+                                <option value="6th_of_october">6th of October</option>
+                                <option value="sharm_el_sheikh">Sharm El Sheikh</option>
+                                <option value="hurghada">Hurghada</option>
+                                <option value="mansoura">Mansoura</option>
+                                <option value="tanta">Tanta</option>
+                                <option value="luxor">Luxor</option>
+                                <option value="aswan">Aswan</option>
+                                <option value="suez">Suez</option>
+                                <option value="ismailia">Ismailia</option>
+                                <option value="port_said">Port Said</option>
+                                <option value="zagazig">Zagazig</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm text-on-surface-variant uppercase" for="address">Address</label>
+                            <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="address" name="address" placeholder="Street, neighborhood" type="text"/>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm text-on-surface-variant uppercase" for="bedrooms">Bedrooms</label>
+                            <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="bedrooms" name="bedrooms" placeholder="3" type="number" min="0"/>
+                        </div>
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm text-on-surface-variant uppercase" for="bathrooms">Bathrooms</label>
+                            <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="bathrooms" name="bathrooms" placeholder="2" type="number" min="0"/>
+                        </div>
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm text-on-surface-variant uppercase" for="area">Area (sqm)</label>
+                            <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="area" name="area" placeholder="150" type="number" min="0"/>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-xs">
+                        <label class="text-label-sm text-on-surface-variant uppercase" for="description">Description</label>
+                        <textarea class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="description" name="description" rows="5" placeholder="Describe your property in detail..."></textarea>
+                    </div>
+
+                    <div class="flex flex-col gap-xs">
+                        <label class="text-label-sm text-on-surface-variant uppercase">Images</label>
+                        <input class="w-full text-body-md text-on-surface file:mr-md file:py-sm file:px-md file:rounded-lg file:border-0 file:bg-primary file:text-on-primary file:text-label-sm file:font-semibold hover:file:bg-primary-hover file:transition-colors" name="images" type="file" accept="image/*" multiple/>
+                        <p class="text-label-sm text-outline">You can select multiple images. First image will be the primary.</p>
+                    </div>
+
+                    <button type="submit" class="w-full btn-primary bg-primary text-on-primary hover:bg-primary-hover">
+                        Post Property
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

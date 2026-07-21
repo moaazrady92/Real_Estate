@@ -157,8 +157,8 @@
         <a href="{% url 'home' %}" class="text-h3 font-h3 font-bold text-primary tracking-tight">LUXOR ESTATE</a>
         <div class="hidden md:flex items-center gap-md">
             <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}text-primary border-b-2 border-primary pb-1 font-semibold{% else %}text-on-surface-variant hover:text-primary transition-colors{% endif %} text-label-sm font-label-sm">Browse Listings</a>
-            {% if user.is_authenticated and user.role == 'seller' %}
-            <a href="{% url 'register' %}" class="text-on-surface-variant hover:text-primary transition-colors text-label-sm font-label-sm">Sell Property</a>
+            {% if user.role == 'seller' %}
+            <a href="{% url 'create_listing' %}" class="text-on-surface-variant hover:text-primary transition-colors text-label-sm font-label-sm">Sell Property</a>
             {% endif %}
         </div>
         <div class="flex items-center gap-sm">
@@ -166,7 +166,10 @@
                 <a href="{% url 'profile' %}" class="text-on-surface-variant hover:text-primary transition-colors text-label-sm font-label-sm">
                     <span class="material-symbols-outlined text-[18px]">person</span> {{ user.first_name|default:user.email }}
                 </a>
-                <a href="{% url 'logout' %}" class="btn-primary bg-primary text-on-primary hover:bg-primary-hover">Logout</a>
+                <form method="POST" action="{% url 'logout' %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary bg-primary text-on-primary hover:bg-primary-hover">Logout</button>
+                </form>
             {% else %}
                 <a href="{% url 'login' %}" class="{% if request.resolver_match.url_name == 'login' %}text-primary border-b-2 border-primary pb-1 font-semibold{% else %}text-on-surface-variant hover:text-primary transition-colors{% endif %} text-label-sm font-label-sm">Login</a>
                 <a href="{% url 'register' %}" class="btn-primary bg-primary text-on-primary hover:bg-primary-hover">Register</a>

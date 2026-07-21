@@ -12,6 +12,7 @@ urlpatterns = [
     # Template-based (HTML) URLs
     path("", listing_views.listing_list, name="home"),
     path("listings/<int:pk>/", listing_views.listing_detail, name="listing_detail"),
+    path("listings/new/", listing_views.create_listing, name="create_listing"),
     path("login/", user_views.login_view, name="login"),
     path("register/", user_views.register_view, name="register"),
     path("logout/", user_views.logout_view, name="logout"),

@@ -43,6 +43,10 @@ class Listing(models.Model):
     listing_type = models.CharField(max_length=10, choices=LISTING_TYPE_CHOICES, blank=True)
     source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default="manual")
     source_url = models.URLField(blank=True, null=True, unique=True)
+    bedrooms = models.PositiveSmallIntegerField(null=True, blank=True)
+    bathrooms = models.PositiveSmallIntegerField(null=True, blank=True)
+    area = models.PositiveIntegerField(null=True, blank=True)
+    rating = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

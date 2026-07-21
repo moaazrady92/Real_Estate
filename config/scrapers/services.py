@@ -8,7 +8,41 @@ from .nawy_scraper import NawyScraper
 
 logger = logging.getLogger(__name__)
 
-def run_aqarmap_scraper(location_path, max_pages=100):
+
+def _save_images(listing_obj, image_urls, extra_urls=None):
+    all_urls = list(image_urls)
+    if extra_urls:
+        existing = set(image_urls)
+        for u in extra_urls:
+            if u not in existing:
+                all_urls.append(u)
+
+    for i, url in enumerate(all_urls):
+        if not url:
+            continue
+        img, created = ListingImage.objects.get_or_create(
+            listing=listing_obj,
+            image_url=url,
+            defaults={"is_primary": (i == 0)},
+        )
+        if not created and i == 0 and not img.is_primary:
+            img.is_primary = True
+            img.save(update_fields=["is_primary"])
+
+
+def _apply_detail(listing_obj, detail):
+    if not detail:
+        return
+    updates = {}
+    for field in ["description", "bedrooms", "bathrooms", "area"]:
+        val = detail.get(field)
+        if val is not None and val != "":
+            updates[field] = val
+    if updates:
+        Listing.objects.filter(pk=listing_obj.pk).update(**updates)
+
+
+def run_aqarmap_scraper(location_path, max_pages=100, scrape_details=False):
     logger.info("[Aqarmap] Starting scraper for %s (max_pages=%d)", location_path, max_pages)
     run = ScraperRun.objects.create(source="aqarmap")
     created = 0
@@ -35,12 +69,12 @@ def run_aqarmap_scraper(location_path, max_pages=100):
             else:
                 updated += 1
 
-            if item.get("image_url"):
-                ListingImage.objects.update_or_create(
-                    listing=obj,
-                    image_url=item["image_url"],
-                    defaults={"is_primary": True},
-                )
+            _save_images(obj, item.get("image_urls", []))
+
+            if scrape_details and was_created:
+                detail = scraper.scrape_detail(item["source_url"])
+                _apply_detail(obj, detail)
+                _save_images(obj, [], detail.get("extra_image_urls", []))
 
         run.status = "success"
         run.listings_found = len(listings)
@@ -58,7 +92,7 @@ def run_aqarmap_scraper(location_path, max_pages=100):
     return run
 
 
-def run_bayut_scraper(max_pages=100):
+def run_bayut_scraper(max_pages=100, scrape_details=False):
     logger.info("[Bayut] Starting scraper (max_pages=%d)", max_pages)
     run = ScraperRun.objects.create(source="bayut")
     created = 0
@@ -67,6 +101,11 @@ def run_bayut_scraper(max_pages=100):
     try:
         scraper = BayutScraper(max_pages=max_pages)
         listings = scraper.scrape()
+
+        import asyncio
+
+        async def _scrape_details():
+            pass  # detail scraping for Bayut is async, handled separately
 
         for item in listings:
             obj, was_created = Listing.objects.update_or_create(
@@ -85,12 +124,7 @@ def run_bayut_scraper(max_pages=100):
             else:
                 updated += 1
 
-            if item.get("image_url"):
-                ListingImage.objects.update_or_create(
-                    listing=obj,
-                    image_url=item["image_url"],
-                    defaults={"is_primary": True},
-                )
+            _save_images(obj, item.get("image_urls", []))
 
         run.status = "success"
         run.listings_found = len(listings)
@@ -107,7 +141,8 @@ def run_bayut_scraper(max_pages=100):
     run.save()
     return run
 
-def run_nawy_scraper(max_pages=100):
+
+def run_nawy_scraper(max_pages=100, scrape_details=False):
     logger.info("[Nawy] Starting scraper (max_pages=%d)", max_pages)
     run = ScraperRun.objects.create(source="nawy")
     created = 0
@@ -134,12 +169,7 @@ def run_nawy_scraper(max_pages=100):
             else:
                 updated += 1
 
-            if item.get("image_url"):
-                ListingImage.objects.update_or_create(
-                    listing=obj,
-                    image_url=item["image_url"],
-                    defaults={"is_primary": True},
-                )
+            _save_images(obj, item.get("image_urls", []))
 
         run.status = "success"
         run.listings_found = len(listings)

@@ -93,7 +93,6 @@ class BayutScraper:
 
     async def _parse_card(self, card, listing_type):
         try:
-            # Title + link
             link_el = await card.query_selector("a[aria-label='Listing link']")
             if not link_el:
                 return None
@@ -105,17 +104,24 @@ class BayutScraper:
 
             source_url = f"{self.BASE_URL}{href}" if href.startswith("/") else href
 
-            # Image
-            img_el = await card.query_selector("source[type='image/webp']")
-            image_url = None
-            if img_el:
+            # Images — get all
+            image_urls = []
+            img_els = await card.query_selector_all("source[type='image/webp'], img")
+            for img_el in img_els:
                 srcset = await img_el.get_attribute("srcset") or ""
-                image_url = srcset.split(",")[0].strip().split(" ")[0]
+                if srcset:
+                    for part in srcset.split(","):
+                        url = part.strip().split(" ")[0]
+                        if url and url not in image_urls:
+                            image_urls.append(url)
+                else:
+                    url = await img_el.get_attribute("src") or await img_el.get_attribute("data-src") or ""
+                    if url and url not in image_urls:
+                        image_urls.append(url)
 
             # Price
             price_el = await card.query_selector("[aria-label='Price']")
             if not price_el:
-                # fallback: find element containing EGP
                 price_el = await card.query_selector("span[class*='price'], [class*='price']")
             price_text = await price_el.inner_text() if price_el else "0"
             price = self._parse_price(price_text)
@@ -123,12 +129,9 @@ class BayutScraper:
             # Address
             address_el = await card.query_selector("[aria-label='Property address'], [class*='address'], [class*='location']")
             address = await address_el.inner_text() if address_el else ""
-
-            # Fallback: get all text and extract address-like content
             if not address:
                 card_text = await card.inner_text()
                 lines = [l.strip() for l in card_text.split("\n") if l.strip()]
-                # Address is usually one of the last lines before buttons
                 address = lines[-3] if len(lines) >= 3 else ""
 
             city = self._extract_city(address + " " + title)
@@ -140,13 +143,68 @@ class BayutScraper:
                 "address": address.strip(),
                 "listing_type": listing_type,
                 "source_url": source_url,
-                "image_url": image_url,
+                "image_urls": image_urls,
                 "source": "bayut",
             }
 
         except Exception as e:
             logger.warning("[Bayut] Card parse error: %s", e)
             return None
+
+    async def scrape_detail(self, context, source_url):
+        try:
+            page = await context.new_page()
+            await page.goto(source_url, wait_until="networkidle", timeout=30000)
+            await page.wait_for_timeout(2000)
+        except Exception as e:
+            logger.warning("[Bayut] Failed to fetch detail %s: %s", source_url, e)
+            return {}
+
+        detail = {}
+
+        try:
+            desc_el = await page.query_selector("[aria-label='Property description'], [class*='description'], [class*='about']")
+            if desc_el:
+                detail["description"] = (await desc_el.inner_text())[:2000]
+        except Exception:
+            pass
+
+        # Extra images
+        try:
+            extra_imgs = []
+            imgs = await page.query_selector_all("[class*='gallery'] img, [class*='slider'] img, [aria-label='Property image']")
+            for img in imgs:
+                url = await img.get_attribute("src") or await img.get_attribute("data-src") or ""
+                if url and "placehold" not in url and url not in extra_imgs:
+                    extra_imgs.append(url)
+            detail["extra_image_urls"] = extra_imgs
+        except Exception:
+            pass
+
+        # Features
+        try:
+            feats = await page.query_selector_all("[aria-label='Property features'] li, [class*='amenities'] li, [class*='features'] span")
+            text = " ".join([(await f.inner_text()) for f in feats])
+            import re
+            bed_match = re.search(r"(\d+)\s*Bed", text)
+            if bed_match:
+                detail["bedrooms"] = int(bed_match.group(1))
+            bath_match = re.search(r"(\d+)\s*Bath", text)
+            if bath_match:
+                detail["bathrooms"] = int(bath_match.group(1))
+            area_match = re.search(r"(\d+)\s*(sq.?ft|sq.?m|m²|sq.?\s*ft|sq.?\s*m)", text, re.IGNORECASE)
+            if area_match:
+                area_val = int(area_match.group(1))
+                unit = area_match.group(2).lower()
+                if "ft" in unit:
+                    detail["area"] = int(area_val / 10.764)
+                else:
+                    detail["area"] = area_val
+        except Exception:
+            pass
+
+        await page.close()
+        return detail
 
     def _parse_price(self, text):
         digits = re.sub(r"[^\d]", "", text)

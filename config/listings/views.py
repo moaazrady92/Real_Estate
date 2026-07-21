@@ -1,4 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q, Count, F
 from django.db.models.expressions import OrderBy
@@ -117,3 +119,59 @@ def listing_detail(request, pk):
         ).exists()
 
     return render(request, "listings/detail.html", {"listing": listing})
+
+
+@login_required
+def create_listing(request):
+    if request.user.role != "seller":
+        messages.error(request, "Only sellers can post listings.")
+        return redirect("home")
+
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        price = request.POST.get("price", "").strip()
+        listing_type = request.POST.get("listing_type", "for_sale")
+        city = request.POST.get("city", "")
+        address = request.POST.get("address", "").strip()
+        bedrooms = request.POST.get("bedrooms", "")
+        bathrooms = request.POST.get("bathrooms", "")
+        area = request.POST.get("area", "")
+        description = request.POST.get("description", "").strip()
+
+        errors = {}
+        if not title:
+            errors["title"] = "Title is required."
+        if not price:
+            errors["price"] = "Price is required."
+        if not city:
+            errors["city"] = "City is required."
+
+        if not errors:
+            listing = Listing.objects.create(
+                title=title,
+                price=price,
+                listing_type=listing_type,
+                city=city,
+                address=address,
+                bedrooms=bedrooms or None,
+                bathrooms=bathrooms or None,
+                area=area or None,
+                description=description,
+                owner=request.user,
+                source="manual",
+            )
+
+            images = request.FILES.getlist("images")
+            for i, image_file in enumerate(images):
+                ListingImage.objects.create(
+                    listing=listing,
+                    image=image_file,
+                    is_primary=(i == 0),
+                )
+
+            messages.success(request, f"Property '{title}' posted successfully!")
+            return redirect("listing_detail", pk=listing.pk)
+
+        return render(request, "listings/create.html", {"errors": errors})
+
+    return render(request, "listings/create.html")

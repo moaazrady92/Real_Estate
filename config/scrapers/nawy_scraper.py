@@ -95,17 +95,19 @@ class NawyScraper:
 
             source_url = f"{self.BASE_URL}{href}"
 
-            # Title from href slug e.g. /compound/2248-mountain-view-5th-settlement
-            slug = href.split("/")[-1]  # "2248-mountain-view-5th-settlement"
-            # Remove leading ID number
+            slug = href.split("/")[-1]
             title_slug = re.sub(r"^\d+-", "", slug)
             title = title_slug.replace("-", " ").title()
 
-            # Image
-            img_el = await card.query_selector("div.cover-image img")
-            image_url = await img_el.get_attribute("src") if img_el else None
+            # Images — get all from card
+            image_urls = []
+            img_els = await card.query_selector_all("img")
+            for img_el in img_els:
+                src = await img_el.get_attribute("src") or await img_el.get_attribute("data-src") or ""
+                if src and src not in image_urls and "placeholder" not in src.lower():
+                    image_urls.append(src)
 
-            # Price — try developer price first, then resale
+            # Price
             price = 0.0
             price_els = await card.query_selector_all("span.price")
             for price_el in price_els:
@@ -115,14 +117,9 @@ class NawyScraper:
                     price = parsed
                     break
 
-            # Address — look for area/location text near the card
-            # It appears as text nodes in the parent container
             parent = await card.evaluate_handle("el => el.parentElement")
             parent_text = await parent.evaluate("el => el.innerText") if parent else ""
-
-            # Extract address lines — usually first 2 lines of card text
             lines = [l.strip() for l in parent_text.split("\n") if l.strip()]
-            # Filter out noise (Compare, No Units, EGP, numbers only)
             address_lines = [
                 l for l in lines
                 if l and not l.isdigit()
@@ -139,11 +136,65 @@ class NawyScraper:
                 "address": address,
                 "listing_type": listing_type,
                 "source_url": source_url,
-                "image_url": image_url,
+                "image_urls": image_urls,
                 "source": "nawy",
             }
 
         except Exception as e:
+            logger.warning("[Nawy] Card parse error: %s", e)
+            return None
+
+    async def scrape_detail(self, context, source_url):
+        try:
+            page = await context.new_page()
+            await page.goto(source_url, wait_until="networkidle", timeout=30000)
+            await page.wait_for_timeout(2000)
+        except Exception as e:
+            logger.warning("[Nawy] Failed to fetch detail %s: %s", source_url, e)
+            return {}
+
+        detail = {}
+
+        try:
+            desc_el = await page.query_selector("[class*='description'], [class*='about'], [class*='overview']")
+            if desc_el:
+                detail["description"] = (await desc_el.inner_text())[:2000]
+        except Exception:
+            pass
+
+        try:
+            extra_imgs = []
+            imgs = await page.query_selector_all("[class*='gallery'] img, [class*='carousel'] img, [class*='slider'] img")
+            for img in imgs:
+                url = await img.get_attribute("src") or await img.get_attribute("data-src") or ""
+                if url and "placehold" not in url and url not in extra_imgs:
+                    extra_imgs.append(url)
+            detail["extra_image_urls"] = extra_imgs
+        except Exception:
+            pass
+
+        try:
+            feats = await page.query_selector_all("[class*='features'] li, [class*='specs'] li, [class*='amenities'] div")
+            text = " ".join([(await f.inner_text()) for f in feats])
+            import re
+            bed_match = re.search(r"(\d+)\s*Bed", text)
+            if bed_match:
+                detail["bedrooms"] = int(bed_match.group(1))
+            bath_match = re.search(r"(\d+)\s*Bath", text)
+            if bath_match:
+                detail["bathrooms"] = int(bath_match.group(1))
+            area_match = re.search(r"(\d+)\s*(sq.?m|sq.?ft|m²)", text, re.IGNORECASE)
+            if area_match:
+                area_val = int(area_match.group(1))
+                if "ft" in area_match.group(2).lower():
+                    detail["area"] = int(area_val / 10.764)
+                else:
+                    detail["area"] = area_val
+        except Exception:
+            pass
+
+        await page.close()
+        return detail
             logger.warning("[Nawy] Card parse error: %s", e)
             return None
 

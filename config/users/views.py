@@ -273,6 +273,9 @@ def register_view(request):
     return render(request, "accounts/register.html")
 
 
+from django.views.decorators.http import require_POST
+
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect("home")
@@ -299,9 +302,10 @@ def login_view(request):
     return render(request, "accounts/login.html")
 
 
+@require_POST
 def logout_view(request):
     logout(request)
-    return redirect("home")
+    return redirect("login")
 
 
 @login_required
