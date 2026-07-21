@@ -209,6 +209,37 @@ class BayutScraper:
             except Exception:
                 pass
 
+            # Try extract lat/lng from map elements
+            try:
+                map_el = await page.query_selector("[data-lat], [data-latitude], [class*='map'], #property-map")
+                if map_el:
+                    lat = await map_el.get_attribute("data-lat") or await map_el.get_attribute("data-latitude")
+                    lng = await map_el.get_attribute("data-lng") or await map_el.get_attribute("data-longitude")
+                    if lat and lng:
+                        detail["latitude"] = float(lat)
+                        detail["longitude"] = float(lng)
+            except Exception:
+                pass
+
+            if "latitude" not in detail:
+                try:
+                    scripts = await page.query_selector_all("script[type='application/ld+json']")
+                    import json
+                    for s in scripts:
+                        try:
+                            content = await s.inner_text()
+                            data = json.loads(content or "{}")
+                            if isinstance(data, dict) and "geo" in data:
+                                geo = data["geo"]
+                                if "latitude" in geo and "longitude" in geo:
+                                    detail["latitude"] = float(geo["latitude"])
+                                    detail["longitude"] = float(geo["longitude"])
+                                    break
+                        except (json.JSONDecodeError, ValueError, TypeError):
+                            continue
+                except Exception:
+                    pass
+
             await browser.close()
             return detail
 

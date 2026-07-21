@@ -34,7 +34,7 @@ def _apply_detail(listing_obj, detail):
     if not detail:
         return
     updates = {}
-    for field in ["description", "bedrooms", "bathrooms", "area"]:
+    for field in ["description", "bedrooms", "bathrooms", "area", "latitude", "longitude"]:
         val = detail.get(field)
         if val is not None and val != "":
             updates[field] = val

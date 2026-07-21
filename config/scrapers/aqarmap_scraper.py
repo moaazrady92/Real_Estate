@@ -138,6 +138,36 @@ class AqarmapScraper:
                 if num and "area" not in detail:
                     detail["area"] = int(num.group(1))
 
+        # Try extract lat/lng from map containers or JSON-LD
+        try:
+            map_el = soup.select_one("[data-lat], #listing-map, [class*='map'], [id*='map']")
+            if map_el:
+                lat = map_el.get("data-lat") or map_el.get("data-latitude")
+                lng = map_el.get("data-lng") or map_el.get("data-longitude")
+                if lat and lng:
+                    detail["latitude"] = float(lat)
+                    detail["longitude"] = float(lng)
+        except Exception:
+            pass
+
+        if "latitude" not in detail:
+            try:
+                scripts = soup.select("script[type='application/ld+json']")
+                import json
+                for s in scripts:
+                    try:
+                        data = json.loads(s.string or "")
+                        if isinstance(data, dict) and "geo" in data:
+                            geo = data["geo"]
+                            if "latitude" in geo and "longitude" in geo:
+                                detail["latitude"] = float(geo["latitude"])
+                                detail["longitude"] = float(geo["longitude"])
+                                break
+                    except (json.JSONDecodeError, ValueError, TypeError):
+                        continue
+            except Exception:
+                pass
+
         return detail
 
     def _absolute_url(self, href):

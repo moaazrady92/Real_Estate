@@ -201,14 +201,43 @@ class NawyScraper:
             except Exception:
                 pass
 
+            # Try extract lat/lng
+            try:
+                map_el = await page.query_selector("[data-lat], [data-latitude], [class*='map-container'], #map")
+                if map_el:
+                    lat = await map_el.get_attribute("data-lat") or await map_el.get_attribute("data-latitude")
+                    lng = await map_el.get_attribute("data-lng") or await map_el.get_attribute("data-longitude")
+                    if lat and lng:
+                        detail["latitude"] = float(lat)
+                        detail["longitude"] = float(lng)
+            except Exception:
+                pass
+
+            if "latitude" not in detail:
+                try:
+                    scripts = await page.query_selector_all("script[type='application/ld+json']")
+                    import json
+                    for s in scripts:
+                        try:
+                            content = await s.inner_text()
+                            data = json.loads(content or "{}")
+                            if isinstance(data, dict) and "geo" in data:
+                                geo = data["geo"]
+                                if "latitude" in geo and "longitude" in geo:
+                                    detail["latitude"] = float(geo["latitude"])
+                                    detail["longitude"] = float(geo["longitude"])
+                                    break
+                        except (json.JSONDecodeError, ValueError, TypeError):
+                            continue
+                except Exception:
+                    pass
+
             await browser.close()
             return detail
 
     def scrape_detail(self, source_url):
         import asyncio
         return asyncio.run(self.scrape_detail_async(source_url))
-            logger.warning("[Nawy] Card parse error: %s", e)
-            return None
 
     def _parse_price(self, text):
         digits = re.sub(r"[^\d]", "", text)

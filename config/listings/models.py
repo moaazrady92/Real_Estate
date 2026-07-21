@@ -47,6 +47,8 @@ class Listing(models.Model):
     bathrooms = models.PositiveSmallIntegerField(null=True, blank=True)
     area = models.PositiveIntegerField(null=True, blank=True)
     rating = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
