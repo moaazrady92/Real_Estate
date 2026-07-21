@@ -3,16 +3,16 @@
 {% block title %}Login | LUXOR ESTATE{% endblock %}
 
 {% block navbar %}
-<header class="bg-surface sticky top-0 z-50 border-b border-outline-variant">
+<header class="bg-surface-container border-b border-outline-variant sticky top-0 z-50">
     <nav class="flex justify-between items-center w-full px-base md:px-xl py-sm max-w-container-max mx-auto">
         <a href="{% url 'home' %}" class="text-h3 font-h3 font-bold text-primary tracking-tight">LUXOR ESTATE</a>
         <div class="hidden md:flex items-center gap-md">
             <a href="{% url 'home' %}" class="text-on-surface-variant hover:text-primary transition-colors text-label-sm font-label-sm">Browse Listings</a>
-            <a href="#" class="text-on-surface-variant hover:text-primary transition-colors text-label-sm font-label-sm">Sell Property</a>
+            <a href="{% url 'register' %}" class="text-on-surface-variant hover:text-primary transition-colors text-label-sm font-label-sm">Sell Property</a>
         </div>
         <div class="flex items-center gap-sm">
             <a href="{% url 'login' %}" class="text-primary border-b-2 border-primary pb-1 font-semibold text-label-sm font-label-sm">Login</a>
-            <a href="{% url 'register' %}" class="px-md py-xs bg-primary text-on-primary rounded-lg font-semibold text-label-sm hover:scale-95 transition-transform">Register</a>
+            <a href="{% url 'register' %}" class="btn-primary bg-primary text-on-primary hover:bg-primary-hover">Register</a>
         </div>
     </nav>
 </header>
@@ -20,27 +20,27 @@
 
 {% block content %}
 <div class="flex-grow flex items-center justify-center py-xl relative overflow-hidden">
-    <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, #002045 1px, transparent 0); background-size: 40px 40px;"></div>
+    <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, #C6A555 1px, transparent 0); background-size: 40px 40px;"></div>
 
-    <div class="w-full max-w-[480px] px-base relative z-10">
-        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-[0px_12px_24px_rgba(26,54,93,0.06)] overflow-hidden">
+    <div class="w-full max-w-[460px] px-base relative z-10">
+        <div class="glass-card rounded-xl shadow-[0px_4px_20px_rgba(198,165,85,0.06)] overflow-hidden">
             <div class="p-lg md:p-xl space-y-md">
                 <div class="text-center space-y-xs">
                     <h1 class="text-h2 font-h2 text-primary">Welcome Back</h1>
-                    <p class="text-body-md font-body-md text-on-surface-variant">Sign in to manage your premium portfolio.</p>
+                    <p class="text-body-md text-on-surface-variant">Sign in to manage your premium portfolio.</p>
                 </div>
 
                 {% if form.errors %}
-                <div class="p-md bg-error-container/20 border border-error rounded-lg">
-                    <p class="text-error text-body-md">Invalid email or password. Please try again.</p>
+                <div class="p-sm bg-error-container/20 border border-error rounded-lg">
+                    <p class="text-error text-body-md">Invalid email or password.</p>
                 </div>
                 {% endif %}
 
                 {% if messages %}
                 <div class="space-y-xs">
                     {% for message in messages %}
-                    <div class="p-md bg-secondary-container/30 border border-secondary rounded-lg">
-                        <p class="text-secondary text-body-md">{{ message }}</p>
+                    <div class="p-sm bg-primary-container/20 border border-primary rounded-lg">
+                        <p class="text-primary text-body-md">{{ message }}</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -53,44 +53,44 @@
                         <label for="email" class="text-label-sm font-label-sm text-on-surface-variant block">EMAIL ADDRESS</label>
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">mail</span>
-                            <input type="email" id="email" name="email" required placeholder="name@domain.com" class="w-full pl-[44px] pr-md py-sm bg-surface-container-low border border-outline-variant rounded-lg text-body-md font-body-md focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all outline-none" value="{{ form.email.value|default:'' }}">
+                            <input type="email" id="email" name="email" required placeholder="name@domain.com" class="w-full pl-[44px] pr-md py-sm bg-surface-container border border-outline-variant rounded-lg text-body-md focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all outline-none" value="{{ form.email.value|default:'' }}">
                         </div>
                     </div>
 
                     <div class="space-y-xs">
                         <div class="flex justify-between items-end">
                             <label for="password" class="text-label-sm font-label-sm text-on-surface-variant block">PASSWORD</label>
-                            <a href="{% url 'password_reset' %}" class="text-label-sm font-label-sm text-secondary hover:underline transition-all">Forgot Password?</a>
+                            <a href="{% url 'password_reset' %}" class="text-label-sm text-primary hover:underline transition-all">Forgot Password?</a>
                         </div>
                         <div class="relative">
                             <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">lock</span>
-                            <input type="password" id="password" name="password" required placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" class="w-full pl-[44px] pr-md py-sm bg-surface-container-low border border-outline-variant rounded-lg text-body-md font-body-md focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all outline-none">
+                            <input type="password" id="password" name="password" required placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" class="w-full pl-[44px] pr-md py-sm bg-surface-container border border-outline-variant rounded-lg text-body-md focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all outline-none">
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full bg-primary text-on-primary py-md rounded-lg text-h4 font-h4 hover:bg-secondary hover:scale-[0.98] transition-all duration-300 shadow-md active:scale-95">
-                        Login
+                    <button type="submit" class="w-full btn-primary bg-primary text-on-primary hover:bg-primary-hover">
+                        Sign In
                     </button>
                 </form>
 
                 <div class="relative py-sm flex items-center">
                     <div class="flex-grow border-t border-outline-variant"></div>
-                    <span class="px-md text-label-sm font-label-sm text-outline">OR CONTINUE WITH</span>
+                    <span class="px-md text-label-sm text-outline">OR</span>
                     <div class="flex-grow border-t border-outline-variant"></div>
                 </div>
 
-                <a href="{% url 'google_login' %}" class="w-full flex items-center justify-center gap-sm py-md border border-outline-variant rounded-lg text-body-md font-body-md hover:bg-surface-container-low transition-all">
+                <a href="{% url 'google_login' %}" class="w-full btn-outline border border-outline-variant text-on-surface bg-surface-container hover:bg-surface-container-high hover:border-primary flex items-center justify-center gap-sm">
                     <svg class="w-5 h-5" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
                         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                         <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                         <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                     </svg>
-                    Sign in with Google
+                    Google
                 </a>
 
                 <div class="text-center pt-md">
-                    <p class="text-body-md font-body-md text-on-surface-variant">
+                    <p class="text-body-md text-on-surface-variant">
                         Don't have an account?
                         <a href="{% url 'register' %}" class="text-primary font-semibold hover:underline transition-all">Register here</a>
                     </p>

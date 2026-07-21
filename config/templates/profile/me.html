@@ -6,44 +6,39 @@
 <div class="max-w-container-max mx-auto px-base md:px-xl py-lg">
     <div class="flex flex-col lg:flex-row gap-lg">
 
-        <!-- Profile Sidebar -->
         <aside class="w-full lg:w-80 shrink-0">
             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md text-center">
                 {% if user.profile_picture %}
-                <img src="{{ user.profile_picture.url }}" alt="" class="w-24 h-24 rounded-full mx-auto object-cover mb-sm border-4 border-primary/10"/>
+                <img src="{{ user.profile_picture.url }}" alt="" class="w-24 h-24 rounded-full mx-auto object-cover mb-sm border-2 border-primary/30"/>
                 {% else %}
                 <div class="w-24 h-24 rounded-full mx-auto mb-sm bg-primary/10 flex items-center justify-center">
                     <span class="material-symbols-outlined text-[48px] text-primary">person</span>
                 </div>
                 {% endif %}
 
-                <h2 class="text-h4 font-h4 text-primary">{{ user.display_name|default:user.first_name }}</h2>
+                <h2 class="text-h4 font-h4 text-on-surface">{{ user.display_name|default:user.first_name }}</h2>
                 <p class="text-body-md text-on-surface-variant mb-sm">{{ user.email }}</p>
-                <span class="px-sm py-xs rounded-lg text-label-sm font-label-sm uppercase {% if user.role == 'seller' %}bg-secondary-container text-on-secondary-container{% else %}bg-primary-container/30 text-primary{% endif %}">
+                <span class="px-sm py-xs rounded-lg text-label-sm uppercase {% if user.role == 'seller' %}bg-primary-container text-on-primary-container{% else %}bg-primary/10 text-primary{% endif %}">
                     {{ user.role|title }}
                 </span>
             </div>
         </aside>
 
-        <!-- Main Content -->
         <div class="flex-1 space-y-lg">
-
-            <!-- Tabs -->
             <div class="flex border-b border-outline-variant">
-                <button class="px-lg py-sm text-label-sm font-label-sm border-b-2 border-primary text-primary" onclick="switchProfileTab('edit')" id="tab-edit">Edit Profile</button>
+                <button class="px-md py-sm text-label-sm border-b-2 border-primary text-primary" onclick="switchProfileTab('edit')" id="tab-edit">Edit Profile</button>
                 {% if user.role == 'seller' %}
-                <button class="px-lg py-sm text-label-sm font-label-sm border-b-2 border-transparent text-on-surface-variant hover:text-primary" onclick="switchProfileTab('listings')" id="tab-listings">My Listings</button>
+                <button class="px-md py-sm text-label-sm border-b-2 border-transparent text-on-surface-variant hover:text-primary" onclick="switchProfileTab('listings')" id="tab-listings">My Listings</button>
                 {% endif %}
-                <button class="px-lg py-sm text-label-sm font-label-sm border-b-2 border-transparent text-on-surface-variant hover:text-primary" onclick="switchProfileTab('favorites')" id="tab-favorites">My Favorites</button>
+                <button class="px-md py-sm text-label-sm border-b-2 border-transparent text-on-surface-variant hover:text-primary" onclick="switchProfileTab('favorites')" id="tab-favorites">Favorites</button>
             </div>
 
-            <!-- Edit Profile Tab -->
             <div id="panel-edit" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
                 {% if messages %}
                 <div class="space-y-xs mb-md">
                     {% for message in messages %}
-                    <div class="p-md bg-secondary-container/30 border border-secondary rounded-lg">
-                        <p class="text-secondary text-body-md">{{ message }}</p>
+                    <div class="p-sm bg-primary-container/20 border border-primary rounded-lg">
+                        <p class="text-primary text-body-md">{{ message }}</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -54,42 +49,41 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
                         <div class="flex flex-col gap-xs">
-                            <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="first_name">First Name</label>
-                            <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="first_name" name="first_name" value="{{ user.first_name }}" required type="text"/>
+                            <label class="text-label-sm text-on-surface-variant uppercase">First Name</label>
+                            <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" name="first_name" value="{{ user.first_name }}" required type="text"/>
                         </div>
                         <div class="flex flex-col gap-xs">
-                            <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="last_name">Last Name</label>
-                            <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="last_name" name="last_name" value="{{ user.last_name }}" required type="text"/>
+                            <label class="text-label-sm text-on-surface-variant uppercase">Last Name</label>
+                            <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" name="last_name" value="{{ user.last_name }}" required type="text"/>
                         </div>
                     </div>
 
                     <div class="flex flex-col gap-xs">
-                        <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="display_name">Display Name</label>
-                        <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="display_name" name="display_name" value="{{ user.display_name }}" placeholder="How others see you" type="text"/>
+                        <label class="text-label-sm text-on-surface-variant uppercase">Display Name</label>
+                        <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" name="display_name" value="{{ user.display_name }}" placeholder="How others see you" type="text"/>
                     </div>
 
                     <div class="flex flex-col gap-xs">
-                        <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="phone_number">Phone Number</label>
-                        <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="phone_number" name="phone_number" value="{{ user.phone_number }}" type="tel"/>
+                        <label class="text-label-sm text-on-surface-variant uppercase">Phone Number</label>
+                        <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" name="phone_number" value="{{ user.phone_number }}" type="tel"/>
                     </div>
 
                     <div class="flex flex-col gap-xs">
-                        <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="bio">Bio</label>
-                        <textarea class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="bio" name="bio" rows="3" placeholder="Tell us about yourself...">{{ user.bio }}</textarea>
+                        <label class="text-label-sm text-on-surface-variant uppercase">Bio</label>
+                        <textarea class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" name="bio" rows="3" placeholder="Tell us about yourself...">{{ user.bio }}</textarea>
                     </div>
 
                     <div class="flex flex-col gap-xs">
-                        <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="profile_picture">Profile Picture</label>
-                        <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="profile_picture" name="profile_picture" type="file" accept="image/*"/>
+                        <label class="text-label-sm text-on-surface-variant uppercase">Profile Picture</label>
+                        <input class="w-full text-body-md text-on-surface file:mr-md file:py-sm file:px-md file:rounded-lg file:border-0 file:bg-primary file:text-on-primary file:text-label-sm file:font-semibold hover:file:bg-primary-hover file:transition-colors" name="profile_picture" type="file" accept="image/*"/>
                     </div>
 
-                    <button type="submit" class="px-lg py-sm bg-primary text-on-primary rounded-lg font-semibold hover:bg-secondary transition-all">
+                    <button type="submit" class="btn-primary bg-primary text-on-primary hover:bg-primary-hover">
                         Save Changes
                     </button>
                 </form>
             </div>
 
-            <!-- My Listings Tab -->
             {% if user.role == 'seller' %}
             <div id="panel-listings" class="hidden space-y-md">
                 {% if user.listings.exists %}
@@ -107,7 +101,6 @@
             </div>
             {% endif %}
 
-            <!-- My Favorites Tab -->
             <div id="panel-favorites" class="hidden space-y-md">
                 {% if favorites.exists %}
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
@@ -119,11 +112,10 @@
                 <div class="text-center py-xl bg-surface-container-lowest border border-outline-variant rounded-xl">
                     <span class="material-symbols-outlined text-[48px] text-outline">favorite</span>
                     <p class="text-body-md text-on-surface-variant mt-sm">No favorites yet. Start browsing!</p>
-                    <a href="{% url 'home' %}" class="inline-block mt-md px-lg py-sm bg-primary text-on-primary rounded-lg font-semibold hover:bg-secondary transition-all">Browse Listings</a>
+                    <a href="{% url 'home' %}" class="inline-block mt-md btn-primary bg-primary text-on-primary hover:bg-primary-hover">Browse Listings</a>
                 </div>
                 {% endif %}
             </div>
-
         </div>
     </div>
 </div>
@@ -141,7 +133,6 @@
                 tabBtn.classList.add('border-transparent', 'text-on-surface-variant');
             }
         });
-
         const activePanel = document.getElementById('panel-' + tab);
         const activeTab = document.getElementById('tab-' + tab);
         if (activePanel) activePanel.classList.remove('hidden');

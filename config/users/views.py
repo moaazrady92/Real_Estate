@@ -262,7 +262,7 @@ def register_view(request):
             )
             user.set_password(password)
             user.save()
-            login(request, user)
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
             logger.info("New user registered: %s (%s)", email, role)
             return redirect("home")
 
@@ -342,6 +342,8 @@ def public_profile_view(request, pk):
 
 
 def password_reset_view(request):
+    email_from_get = request.GET.get("email", "")
+
     if request.method == "POST":
         action = request.POST.get("action")
 
@@ -361,17 +363,19 @@ def password_reset_view(request):
             try:
                 send_mail(
                     subject="Your Password Reset Code",
-                    message=f"Your password reset code is: {reset_code.code}\nThis code expires in {expiry_minutes} minutes.",
+                    message=f"Your password reset code is: {reset_code.code}\nThis code expires in {expiry_minutes} minutes.\n\nReset your password here: {request.build_absolute_uri(reverse('password_reset'))}?email={email}",
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[email],
                     fail_silently=False,
                 )
-                messages.success(request, f"Reset code sent to {email}. Check your inbox.")
-                return render(request, "accounts/forgot_password.html", {"show_code_step": True})
+                logger.info("Password reset code sent to %s", email)
             except Exception as e:
                 logger.error("Failed to send password reset email to %s: %s", email, e)
                 messages.error(request, "Failed to send email. Please try again.")
                 return render(request, "accounts/forgot_password.html")
+
+            messages.success(request, f"Reset code sent to {email}. Check your inbox.")
+            return render(request, "accounts/forgot_password.html", {"sent_email": email})
 
         elif action == "confirm_reset":
             email = request.POST.get("email", "").strip()
@@ -380,7 +384,7 @@ def password_reset_view(request):
 
             if not email or not code or not new_password:
                 messages.error(request, "All fields are required.")
-                return render(request, "accounts/forgot_password.html", {"show_code_step": True})
+                return redirect(f"{reverse('password_reset')}?email={email}")
 
             try:
                 reset_code = PasswordResetCode.objects.filter(
@@ -388,15 +392,15 @@ def password_reset_view(request):
                 ).latest("created_at")
             except PasswordResetCode.DoesNotExist:
                 messages.error(request, "Invalid or expired code.")
-                return render(request, "accounts/forgot_password.html", {"show_code_step": True})
+                return redirect(f"{reverse('password_reset')}?email={email}")
 
             if not reset_code.is_valid():
                 messages.error(request, "This code has expired. Request a new one.")
-                return render(request, "accounts/forgot_password.html", {"show_code_step": True})
+                return redirect(f"{reverse('password_reset')}?email={email}")
 
             if len(new_password) < 8:
                 messages.error(request, "Password must be at least 8 characters.")
-                return render(request, "accounts/forgot_password.html", {"show_code_step": True})
+                return redirect(f"{reverse('password_reset')}?email={email}")
 
             user = get_object_or_404(User, email=email)
             user.set_password(new_password)
@@ -405,10 +409,13 @@ def password_reset_view(request):
             reset_code.used = True
             reset_code.save()
 
+            logger.info("Password reset completed for %s", email)
             messages.success(request, "Password reset successful! You can now log in.")
             return redirect("login")
 
-    return render(request, "accounts/forgot_password.html")
+    return render(request, "accounts/forgot_password.html", {
+        "sent_email": email_from_get,
+    })
 
 
 def google_login_view(request):
@@ -464,7 +471,7 @@ def google_callback_view(request):
         user.save()
         logger.info("New user created via Google: %s", email)
 
-    login(request, user)
+    login(request, user, backend="django.contrib.auth.backends.ModelBackend")
     return redirect("home")
 
 

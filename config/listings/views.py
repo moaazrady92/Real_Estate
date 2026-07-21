@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Count, F
+from django.db.models.expressions import OrderBy
 from rest_framework import viewsets, permissions, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -47,7 +48,9 @@ class ListingViewSet(viewsets.ModelViewSet):
 # ──────────────────────────────────────────────────
 
 def listing_list(request):
-    listings = Listing.objects.filter(is_active=True).prefetch_related("images")
+    listings = Listing.objects.filter(is_active=True).prefetch_related("images").annotate(
+        image_count=Count("images")
+    )
 
     listing_type = request.GET.get("listing_type", "for_sale")
     city = request.GET.get("city", "")
@@ -67,10 +70,12 @@ def listing_list(request):
     if sources:
         listings = listings.filter(source__in=sources)
 
+    ordering = []
     if sort in ["price", "-price", "-created_at", "created_at"]:
-        listings = listings.order_by(sort)
+        ordering.append(sort)
+    ordered = listings.order_by(OrderBy(F("image_count"), descending=True), *ordering)
 
-    paginator = Paginator(listings, 20)
+    paginator = Paginator(ordered, 20)
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
 

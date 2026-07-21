@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load humanize %}
 
 {% block title %}{{ title|default:"Properties" }} | LUXOR ESTATE{% endblock %}
 
@@ -7,7 +7,7 @@
 <div class="max-w-container-max mx-auto px-base md:px-xl py-lg">
     <div class="flex flex-col md:flex-row gap-gutter">
 
-        <!-- Sidebar / Advanced Filters -->
+        <!-- Sidebar Filters -->
         <aside class="w-full md:w-80 shrink-0">
             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md sticky top-32">
                 <div class="flex items-center justify-between mb-md">
@@ -16,7 +16,6 @@
                 </div>
 
                 <form method="GET" action="{% url 'home' %}">
-                    <!-- Listing Type -->
                     <div class="mb-lg">
                         <label class="block text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm">Listing Type</label>
                         <div class="flex gap-sm">
@@ -31,10 +30,9 @@
                         </div>
                     </div>
 
-                    <!-- City Selection -->
                     <div class="mb-lg">
                         <label class="block text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm" for="city">City</label>
-                        <select id="city" name="city" class="w-full bg-white border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary">
+                        <select id="city" name="city" class="w-full bg-surface-container border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary text-on-surface">
                             <option value="">All Cities</option>
                             {% for city in cities %}
                             <option value="{{ city }}" {% if request.GET.city == city %}selected{% endif %}>{{ city|title }}</option>
@@ -42,17 +40,15 @@
                         </select>
                     </div>
 
-                    <!-- Price Range -->
                     <div class="mb-lg">
                         <label class="block text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm">Price Range (EGP)</label>
                         <div class="flex items-center gap-xs">
-                            <input class="w-full bg-white border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary" placeholder="Min" type="number" name="min_price" value="{{ request.GET.min_price|default:'' }}">
+                            <input class="w-full bg-surface-container border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary text-on-surface" placeholder="Min" type="number" name="min_price" value="{{ request.GET.min_price|default:'' }}">
                             <span class="text-outline">-</span>
-                            <input class="w-full bg-white border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary" placeholder="Max" type="number" name="max_price" value="{{ request.GET.max_price|default:'' }}">
+                            <input class="w-full bg-surface-container border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary text-on-surface" placeholder="Max" type="number" name="max_price" value="{{ request.GET.max_price|default:'' }}">
                         </div>
                     </div>
 
-                    <!-- Source -->
                     <div class="mb-md">
                         <label class="block text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm">Property Source</label>
                         <div class="space-y-sm">
@@ -65,14 +61,14 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full py-sm bg-primary text-on-primary rounded-lg font-semibold hover:bg-secondary transition-all">
+                    <button type="submit" class="w-full btn-primary bg-primary text-on-primary hover:bg-primary-hover">
                         Apply Filters
                     </button>
                 </form>
             </div>
         </aside>
 
-        <!-- Listings Area -->
+        <!-- Listings Grid -->
         <section class="flex-1">
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-sm mb-lg">
                 <div>
@@ -94,28 +90,18 @@
             {% if listings %}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
                 {% for listing in listings %}
-                    {% if forloop.first %}
-                        {% include 'includes/property_card.html' with listing=listing extra_class="lg:col-span-2 flex flex-col md:flex-row" is_featured=True %}
-                        {% if listing.primary_image_url %}
-                        <style>
-                            .featured-card-img { height: 100%; min-height: 280px; }
-                            @media (min-width: 768px) { .featured-card-img { min-height: 320px; } }
-                        </style>
-                        {% endif %}
-                    {% else %}
-                        {% include 'includes/property_card.html' with listing=listing %}
-                    {% endif %}
+                    {% include 'includes/property_card.html' with listing=listing %}
                 {% endfor %}
             </div>
 
             {% include 'includes/pagination.html' %}
 
             {% else %}
-            <div class="text-center py-xl">
+            <div class="text-center py-xl bg-surface-container-lowest border border-outline-variant rounded-xl">
                 <span class="material-symbols-outlined text-[64px] text-outline">search_off</span>
                 <h3 class="text-h3 font-h3 text-primary mt-md">No properties found</h3>
                 <p class="text-body-md text-on-surface-variant mt-xs">Try adjusting your filters or check back later.</p>
-                <a href="{% url 'home' %}" class="inline-block mt-md px-lg py-sm bg-primary text-on-primary rounded-lg font-semibold hover:bg-secondary transition-all">Clear Filters</a>
+                <a href="{% url 'home' %}" class="inline-block mt-md btn-primary bg-primary text-on-primary hover:bg-primary-hover">Clear Filters</a>
             </div>
             {% endif %}
         </section>

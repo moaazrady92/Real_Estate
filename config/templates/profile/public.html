@@ -6,21 +6,20 @@
 <div class="max-w-container-max mx-auto px-base md:px-xl py-lg">
     <div class="flex flex-col lg:flex-row gap-lg">
 
-        <!-- Profile Sidebar -->
         <aside class="w-full lg:w-80 shrink-0">
             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md text-center sticky top-32">
                 {% if profile_user.profile_picture %}
-                <img src="{{ profile_user.profile_picture.url }}" alt="" class="w-24 h-24 rounded-full mx-auto object-cover mb-sm border-4 border-primary/10"/>
+                <img src="{{ profile_user.profile_picture.url }}" alt="" class="w-24 h-24 rounded-full mx-auto object-cover mb-sm border-2 border-primary/30"/>
                 {% else %}
                 <div class="w-24 h-24 rounded-full mx-auto mb-sm bg-primary/10 flex items-center justify-center">
                     <span class="material-symbols-outlined text-[48px] text-primary">person</span>
                 </div>
                 {% endif %}
 
-                <h1 class="text-h4 font-h4 text-primary">{{ profile_user.display_name|default:profile_user.first_name }}</h1>
+                <h1 class="text-h4 font-h4 text-on-surface">{{ profile_user.display_name|default:profile_user.first_name }}</h1>
                 <p class="text-body-md text-on-surface-variant mb-sm">{{ profile_user.first_name }} {{ profile_user.last_name }}</p>
 
-                <span class="px-sm py-xs rounded-lg text-label-sm font-label-sm uppercase {% if profile_user.role == 'seller' %}bg-secondary-container text-on-secondary-container{% else %}bg-primary-container/30 text-primary{% endif %} inline-block mb-md">
+                <span class="px-sm py-xs rounded-lg text-label-sm uppercase {% if profile_user.role == 'seller' %}bg-primary-container text-on-primary-container{% else %}bg-primary/10 text-primary{% endif %} inline-block mb-md">
                     {{ profile_user.role|title }}
                 </span>
 
@@ -30,7 +29,6 @@
             </div>
         </aside>
 
-        <!-- Listings Grid -->
         <div class="flex-1">
             <div class="flex items-end justify-between mb-lg">
                 <div>
