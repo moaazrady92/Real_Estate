@@ -31,9 +31,15 @@ class BayutScraper:
     URLS = [
         ("https://www.bayut.eg/en/property/apartments-for-sale/", "for_sale"),
         ("https://www.bayut.eg/en/property/apartments-for-rent/", "for_rent"),
+        ("https://www.bayut.eg/en/property/villas-for-sale/", "for_sale"),
+        ("https://www.bayut.eg/en/property/villas-for-rent/", "for_rent"),
+        ("https://www.bayut.eg/en/property/townhouses-for-sale/", "for_sale"),
+        ("https://www.bayut.eg/en/property/townhouses-for-rent/", "for_rent"),
+        ("https://www.bayut.eg/en/property/duplexes-for-sale/", "for_sale"),
+        ("https://www.bayut.eg/en/property/duplexes-for-rent/", "for_rent"),
     ]
 
-    def __init__(self, max_pages=3):
+    def __init__(self, max_pages=100):
         self.max_pages = max_pages
 
     def scrape(self):

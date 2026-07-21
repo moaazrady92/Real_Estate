@@ -5,7 +5,7 @@ from .models import ScraperRun
 from django.utils import timezone
 from .nawy_scraper import NawyScraper
 
-def run_aqarmap_scraper(location_path, max_pages=3):
+def run_aqarmap_scraper(location_path, max_pages=100):
     run = ScraperRun.objects.create(source="aqarmap")
     created = 0
     updated = 0
@@ -52,7 +52,7 @@ def run_aqarmap_scraper(location_path, max_pages=3):
     return run
 
 
-def run_bayut_scraper(max_pages=3):
+def run_bayut_scraper(max_pages=100):
     run = ScraperRun.objects.create(source="bayut")
     created = 0
     updated = 0
@@ -98,7 +98,7 @@ def run_bayut_scraper(max_pages=3):
     run.save()
     return run
 
-def run_nawy_scraper(max_pages=3):
+def run_nawy_scraper(max_pages=100):
     run = ScraperRun.objects.create(source="nawy")
     created = 0
     updated = 0

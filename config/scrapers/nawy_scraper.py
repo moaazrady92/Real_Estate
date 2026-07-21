@@ -28,7 +28,20 @@ class NawyScraper:
         "heliopolis": "cairo",
     }
 
-    def __init__(self, max_pages=3):
+    URLS = [
+        ("type=apartment&purpose=sale", "for_sale"),
+        ("type=apartment&purpose=rent", "for_rent"),
+        ("type=villa&purpose=sale", "for_sale"),
+        ("type=villa&purpose=rent", "for_rent"),
+        ("type=townhouse&purpose=sale", "for_sale"),
+        ("type=townhouse&purpose=rent", "for_rent"),
+        ("type=duplex&purpose=sale", "for_sale"),
+        ("type=duplex&purpose=rent", "for_rent"),
+        ("type=penthouse&purpose=sale", "for_sale"),
+        ("type=penthouse&purpose=rent", "for_rent"),
+    ]
+
+    def __init__(self, max_pages=100):
         self.max_pages = max_pages
 
     def scrape(self):
@@ -42,35 +55,36 @@ class NawyScraper:
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                            "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
             )
-            page = await context.new_page()
+            for params, listing_type in self.URLS:
+                page = await context.new_page()
+                for page_num in range(1, self.max_pages + 1):
+                    url = f"{self.BASE_URL}/search?{params}&page={page_num}"
+                    try:
+                        await page.goto(url, wait_until="networkidle", timeout=30000)
+                        await page.wait_for_timeout(3000)
 
-            for page_num in range(1, self.max_pages + 1):
-                url = f"{self.BASE_URL}/search?type=apartment&purpose=sale&page={page_num}"
-                try:
-                    await page.goto(url, wait_until="networkidle", timeout=30000)
-                    await page.wait_for_timeout(3000)
+                        cards = await page.query_selector_all(
+                            "a[data-testid='search-result-card-link']"
+                        )
+                        print(f"[Nawy] {params} page {page_num}: {len(cards)} cards")
 
-                    cards = await page.query_selector_all(
-                        "a[data-testid='search-result-card-link']"
-                    )
-                    print(f"[Nawy] Page {page_num}: {len(cards)} cards")
+                        if not cards:
+                            break
 
-                    if not cards:
+                        for card in cards:
+                            listing = await self._parse_card(card, listing_type)
+                            if listing:
+                                all_listings.append(listing)
+
+                    except Exception as e:
+                        print(f"[Nawy] Failed on {params} page {page_num}: {e}")
                         break
-
-                    for card in cards:
-                        listing = await self._parse_card(card)
-                        if listing:
-                            all_listings.append(listing)
-
-                except Exception as e:
-                    print(f"[Nawy] Failed on page {page_num}: {e}")
-                    break
+                await page.close()
 
             await browser.close()
         return all_listings
 
-    async def _parse_card(self, card):
+    async def _parse_card(self, card, listing_type="for_sale"):
         try:
             href = await card.get_attribute("href") or ""
             if not href:
@@ -120,7 +134,7 @@ class NawyScraper:
                 "price": price,
                 "city": city,
                 "address": address,
-                "listing_type": "for_sale",  # Nawy is new developments only
+                "listing_type": listing_type,
                 "source_url": source_url,
                 "image_url": image_url,
                 "source": "nawy",

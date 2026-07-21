@@ -28,7 +28,7 @@ class AqarmapScraper:
         "zagazig": "zagazig",
     }
 
-    def __init__(self, location_path, max_pages=3):
+    def __init__(self, location_path, max_pages=100):
         self.location_path = location_path.strip("/")
         self.max_pages = max_pages
 

@@ -64,6 +64,7 @@ class SellerRegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     listings = serializers.SerializerMethodField()
     favorites = serializers.SerializerMethodField()
+    profile_picture = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -73,6 +74,14 @@ class UserSerializer(serializers.ModelSerializer):
             "role", "national_id", "listings", "favorites",
         ]
         read_only_fields = ["id", "email", "role", "national_id"]
+
+    def get_profile_picture(self, obj):
+        if not obj.profile_picture:
+            return None
+        request = self.context.get("request")
+        if request:
+            return request.build_absolute_uri(obj.profile_picture.url)
+        return obj.profile_picture.url
 
     def get_listings(self, obj):
         if obj.role != "seller":
@@ -92,6 +101,7 @@ class UserSerializer(serializers.ModelSerializer):
 class PublicProfileSerializer(serializers.ModelSerializer):
     """For viewing another user's profile — limited fields only."""
     listings = serializers.SerializerMethodField()
+    profile_picture = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -99,6 +109,14 @@ class PublicProfileSerializer(serializers.ModelSerializer):
             "id", "first_name", "last_name", "display_name",
             "bio", "profile_picture", "role", "listings",
         ]
+
+    def get_profile_picture(self, obj):
+        if not obj.profile_picture:
+            return None
+        request = self.context.get("request")
+        if request:
+            return request.build_absolute_uri(obj.profile_picture.url)
+        return obj.profile_picture.url
 
     def get_listings(self, obj):
         if obj.role != "seller":

@@ -36,7 +36,7 @@ AQARMAP_LOCATIONS = [
 
 
 @shared_task
-def scrape_aqarmap_location(location_path, max_pages=3):
+def scrape_aqarmap_location(location_path, max_pages=100):
     run = run_aqarmap_scraper(location_path, max_pages=max_pages)
     return {
         "location": location_path,
@@ -50,11 +50,11 @@ def scrape_aqarmap_location(location_path, max_pages=3):
 @shared_task
 def scrape_all_aqarmap():
     for location in AQARMAP_LOCATIONS:
-        scrape_aqarmap_location.delay(location, max_pages=3)
+        scrape_aqarmap_location.delay(location, max_pages=100)
 
 
 @shared_task
-def scrape_bayut(max_pages=3):
+def scrape_bayut(max_pages=100):
     run = run_bayut_scraper(max_pages=max_pages)
     return {
         "status": run.status,
@@ -65,13 +65,7 @@ def scrape_bayut(max_pages=3):
 
 
 @shared_task
-def scrape_all_sources():
-    """Master task — runs all scrapers."""
-    scrape_all_aqarmap.delay()
-    scrape_bayut.delay()
-
-@shared_task
-def scrape_nawy(max_pages=3):
+def scrape_nawy(max_pages=100):
     run = run_nawy_scraper(max_pages=max_pages)
     return {
         "status": run.status,
@@ -79,6 +73,7 @@ def scrape_nawy(max_pages=3):
         "created": run.listings_created,
         "updated": run.listings_updated,
     }
+
 
 @shared_task
 def scrape_all_sources():

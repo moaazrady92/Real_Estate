@@ -3,9 +3,21 @@ from .models import Listing, ListingImage
 
 
 class ListingImageSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = ListingImage
         fields = ["id", "image", "image_url", "is_primary"]
+
+    def get_image(self, obj):
+        if obj.image_url:
+            return obj.image_url
+        if obj.image:
+            request = self.context.get("request")
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
 
 class ListingSerializer(serializers.ModelSerializer):
     images = ListingImageSerializer(many=True, read_only=True)

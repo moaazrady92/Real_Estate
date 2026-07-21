@@ -3,9 +3,10 @@ from django.db import models
 
 class ScraperRun(models.Model):
     SOURCE_CHOICES = [
-        ("dubizzle", "Dubizzle"),
         ("aqarmap", "Aqarmap"),
-        ("facebook", "Facebook Marketplace"),
+        ("bayut", "Bayut"),
+        ("nawy", "Nawy"),
+        ("manual", "User Posted"),
     ]
     STATUS_CHOICES = [
         ("success", "Success"),
