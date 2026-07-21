@@ -37,16 +37,3 @@ class ListingViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         instance.is_active = False
         instance.save()
-
-    @action(detail=False, methods=["get"], permission_classes=[permissions.IsAuthenticated])
-    def my_listings(self, request):
-        listings = Listing.objects.filter(owner=request.user, is_active=True)
-        serializer = self.get_serializer(listings, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=["get"], permission_classes=[permissions.AllowAny])
-    def cities(self, request):
-        return Response([
-            {"value": value, "label": label}
-            for value, label in Listing.CITY_CHOICES
-        ])

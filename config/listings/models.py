@@ -1,5 +1,7 @@
+from decimal import Decimal
 from django.db import models
 from django.conf import settings
+from django.core.validators import MinValueValidator
 
 
 class Listing(models.Model):
@@ -30,12 +32,12 @@ class Listing(models.Model):
         ("manual", "User Posted"),
         ("bayut", "Bayut"),
         ("aqarmap", "Aqarmap"),
-        ("facebook", "Facebook Marketplace"),
+        ("nawy", "Nawy")
     ]
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    price = models.DecimalField(max_digits=12, decimal_places=2)
+    price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
     city = models.CharField(max_length=50, choices=CITY_CHOICES, blank=True)
     address = models.CharField(max_length=300, blank=True)
     listing_type = models.CharField(max_length=10, choices=LISTING_TYPE_CHOICES, blank=True)

@@ -20,6 +20,15 @@ class ListingSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "source", "source_url", "owner", "created_at", "updated_at"]
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+        is_staff = request and request.user.is_staff
+        if not is_staff:
+            data.pop("source", None)
+            data.pop("source_url", None)
+        return data
+
 
 class ListingCreateSerializer(serializers.ModelSerializer):
     uploaded_images = serializers.ListField(
