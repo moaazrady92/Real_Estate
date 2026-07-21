@@ -3,7 +3,7 @@
 {% block title %}Register | LUXOR ESTATE{% endblock %}
 
 {% block navbar %}
-<header class="bg-surface-container border-b border-outline-variant sticky top-0 z-50">
+<header class="bg-surface sticky top-0 z-50 border-b border-outline-variant">
     <nav class="flex justify-between items-center w-full px-base md:px-xl py-sm max-w-container-max mx-auto">
         <a href="{% url 'home' %}" class="text-h3 font-h3 font-bold text-primary tracking-tight">LUXOR ESTATE</a>
         <div class="hidden md:flex items-center gap-md">
@@ -19,9 +19,9 @@
 
 {% block content %}
 <div class="min-h-screen flex flex-col items-center justify-center py-xl px-base relative overflow-hidden">
-    <div class="absolute top-0 left-0 w-full h-full -z-10 opacity-15 pointer-events-none">
+    <div class="absolute top-0 left-0 w-full h-full -z-10 opacity-20 pointer-events-none">
         <div class="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full bg-primary/10 blur-[100px]"></div>
-        <div class="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-primary/5 blur-[100px]"></div>
+        <div class="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-secondary/10 blur-[100px]"></div>
     </div>
 
     <div class="w-full max-w-[600px]">
@@ -30,107 +30,79 @@
             <p class="text-on-surface-variant font-body-md">Begin your journey in Egypt's most exclusive real estate market.</p>
         </header>
 
-        <div class="glass-card rounded-xl p-md md:p-lg shadow-[0px_4px_20px_rgba(198,165,85,0.04)]">
+        <div class="glass-card rounded-xl p-md md:p-lg shadow-sm">
 
             {% if form.errors %}
-            <div class="mb-md p-sm bg-error-container/20 border border-error rounded-lg">
-                {% for field, errors in form.errors.items %}
-                    {% for error in errors %}
-                        <p class="text-error text-body-md">{{ error }}</p>
-                    {% endfor %}
-                {% endfor %}
+            <div class="mb-md p-md bg-error-container/20 border border-error rounded-lg">
+                {% for field, errors in form.errors.items %}{% for error in errors %}<p class="text-error text-body-md">{{ error }}</p>{% endfor %}{% endfor %}
             </div>
             {% endif %}
 
+            <!-- CSS-only radio tabs — these submit role AND control visibility -->
+            <input type="radio" name="role" value="buyer" id="tab-radio-buyer" class="hidden peer/buyer" checked/>
+            <input type="radio" name="role" value="seller" id="tab-radio-seller" class="hidden peer/seller"/>
+
             <div class="flex p-xs bg-surface-container rounded-lg mb-md">
-                <button type="button" class="flex-1 py-sm px-sm rounded-lg text-label-sm transition-all duration-300 bg-surface-container-lowest text-primary shadow-sm border border-outline-variant" id="tab-buyer" onclick="switchTab('buyer')">
+                <label for="tab-radio-buyer" class="flex-1 py-sm px-sm rounded-lg text-label-sm text-center cursor-pointer transition-all peer-checked/buyer:bg-surface-container-lowest peer-checked/buyer:text-primary peer-checked/buyer:shadow-sm text-on-surface-variant hover:text-primary">
                     Register as Buyer
-                </button>
-                <button type="button" class="flex-1 py-sm px-sm rounded-lg text-label-sm transition-all duration-300 text-on-surface-variant hover:text-primary" id="tab-seller" onclick="switchTab('seller')">
+                </label>
+                <label for="tab-radio-seller" class="flex-1 py-sm px-sm rounded-lg text-label-sm text-center cursor-pointer transition-all peer-checked/seller:bg-surface-container-lowest peer-checked/seller:text-primary peer-checked/seller:shadow-sm text-on-surface-variant hover:text-primary">
                     Register as Seller
-                </button>
+                </label>
             </div>
 
             <form class="space-y-md" method="POST" action="{% url 'register' %}">
                 {% csrf_token %}
-                <input type="hidden" name="role" id="role-input" value="buyer">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
                     <div class="flex flex-col gap-xs">
                         <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="first_name">First Name</label>
-                        <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="first_name" name="first_name" placeholder="Omar" required type="text" value="{{ form.first_name.value|default:'' }}"/>
+                        <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="first_name" name="first_name" placeholder="Omar" required type="text" value="{{ form.first_name.value|default:'' }}"/>
                     </div>
                     <div class="flex flex-col gap-xs">
                         <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="last_name">Last Name</label>
-                        <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="last_name" name="last_name" placeholder="Mansour" required type="text" value="{{ form.last_name.value|default:'' }}"/>
+                        <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="last_name" name="last_name" placeholder="Mansour" required type="text" value="{{ form.last_name.value|default:'' }}"/>
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-xs">
                     <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="email">Email Address</label>
-                    <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="email" name="email" placeholder="omar.mansour@example.com" required type="email" value="{{ form.email.value|default:'' }}"/>
+                    <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="email" name="email" placeholder="omar.mansour@example.com" required type="email" value="{{ form.email.value|default:'' }}"/>
                 </div>
 
                 <div class="flex flex-col gap-xs">
                     <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="phone_number">Phone Number</label>
-                    <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="phone_number" name="phone_number" placeholder="+20 1XX XXX XXXX" required type="tel" value="{{ form.phone_number.value|default:'' }}"/>
+                    <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="phone_number" name="phone_number" placeholder="+20 1XX XXX XXXX" required type="tel" value="{{ form.phone_number.value|default:'' }}"/>
                 </div>
 
-                <div class="hidden flex flex-col gap-xs" id="national-id-container">
+                <!-- Seller-only: national ID -->
+                <div class="hidden peer-checked/seller:flex flex-col gap-xs" id="national-id-container">
                     <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="national_id">National ID</label>
-                    <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="national_id" name="national_id" placeholder="2900101XXXXXXXX" type="text" value="{{ form.national_id.value|default:'' }}"/>
+                    <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="national_id" name="national_id" placeholder="2900101XXXXXXXX" type="text" value="{{ form.national_id.value|default:'' }}"/>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
                     <div class="flex flex-col gap-xs">
                         <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="password">Password</label>
-                        <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="password" name="password" required type="password"/>
+                        <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="password" name="password" required type="password"/>
                     </div>
                     <div class="flex flex-col gap-xs">
                         <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="password_confirm">Confirm Password</label>
-                        <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="password_confirm" name="password_confirm" required type="password"/>
+                        <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="password_confirm" name="password_confirm" required type="password"/>
                     </div>
                 </div>
 
                 <div class="pt-sm">
-                    <button class="w-full btn-primary bg-primary text-on-primary hover:bg-primary-hover" type="submit">
+                    <button class="w-full bg-primary text-on-primary py-md rounded-lg font-h4 text-h4 hover:bg-primary-container active:scale-95 transition-all duration-300 shadow-sm" type="submit">
                         Create Account
                     </button>
                 </div>
 
-                <p class="text-center text-label-sm text-on-surface-variant mt-sm">
+                <p class="text-center text-label-sm font-label-sm text-on-surface-variant mt-sm">
                     Already have an account? <a href="{% url 'login' %}" class="text-primary hover:underline font-semibold">Login</a>
                 </p>
             </form>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    function switchTab(role) {
-        const buyerBtn = document.getElementById('tab-buyer');
-        const sellerBtn = document.getElementById('tab-seller');
-        const roleInput = document.getElementById('role-input');
-
-        if (role === 'buyer') {
-            buyerBtn.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'border-outline-variant');
-            buyerBtn.classList.remove('text-on-surface-variant');
-            sellerBtn.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'border-outline-variant');
-            sellerBtn.classList.add('text-on-surface-variant');
-            document.getElementById('national-id-container').classList.add('hidden');
-            document.getElementById('national_id').removeAttribute('required');
-            roleInput.value = 'buyer';
-        } else {
-            sellerBtn.classList.add('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'border-outline-variant');
-            sellerBtn.classList.remove('text-on-surface-variant');
-            buyerBtn.classList.remove('bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'border-outline-variant');
-            buyerBtn.classList.add('text-on-surface-variant');
-            document.getElementById('national-id-container').classList.remove('hidden');
-            document.getElementById('national_id').setAttribute('required', '');
-            roleInput.value = 'seller';
-        }
-    }
-</script>
 {% endblock %}

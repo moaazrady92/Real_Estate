@@ -32,14 +32,14 @@ class BayutScraper:
     }
 
     URLS = [
-        ("https://www.bayut.eg/en/property/apartments-for-sale/", "for_sale"),
-        ("https://www.bayut.eg/en/property/apartments-for-rent/", "for_rent"),
-        ("https://www.bayut.eg/en/property/villas-for-sale/", "for_sale"),
-        ("https://www.bayut.eg/en/property/villas-for-rent/", "for_rent"),
-        ("https://www.bayut.eg/en/property/townhouses-for-sale/", "for_sale"),
-        ("https://www.bayut.eg/en/property/townhouses-for-rent/", "for_rent"),
-        ("https://www.bayut.eg/en/property/duplexes-for-sale/", "for_sale"),
-        ("https://www.bayut.eg/en/property/duplexes-for-rent/", "for_rent"),
+        ("https://www.bayut.eg/en/property/apartments-for-sale/", "for_sale", "apartment"),
+        ("https://www.bayut.eg/en/property/apartments-for-rent/", "for_rent", "apartment"),
+        ("https://www.bayut.eg/en/property/villas-for-sale/", "for_sale", "villa"),
+        ("https://www.bayut.eg/en/property/villas-for-rent/", "for_rent", "villa"),
+        ("https://www.bayut.eg/en/property/townhouses-for-sale/", "for_sale", "townhouse"),
+        ("https://www.bayut.eg/en/property/townhouses-for-rent/", "for_rent", "townhouse"),
+        ("https://www.bayut.eg/en/property/duplexes-for-sale/", "for_sale", "duplex"),
+        ("https://www.bayut.eg/en/property/duplexes-for-rent/", "for_rent", "duplex"),
     ]
 
     def __init__(self, max_pages=100):
@@ -56,14 +56,14 @@ class BayutScraper:
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                            "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
             )
-            for url, listing_type in self.URLS:
-                listings = await self._scrape_url(context, url, listing_type)
+            for url, listing_type, property_type in self.URLS:
+                listings = await self._scrape_url(context, url, listing_type, property_type)
                 all_listings.extend(listings)
                 logger.info("[Bayut] %s -> %d listings", url, len(listings))
             await browser.close()
         return all_listings
 
-    async def _scrape_url(self, context, start_url, listing_type):
+    async def _scrape_url(self, context, start_url, listing_type, property_type):
         results = []
         page = await context.new_page()
 
@@ -80,7 +80,7 @@ class BayutScraper:
                     break
 
                 for card in cards:
-                    listing = await self._parse_card(card, listing_type)
+                    listing = await self._parse_card(card, listing_type, property_type)
                     if listing:
                         results.append(listing)
 
@@ -91,7 +91,7 @@ class BayutScraper:
         await page.close()
         return results
 
-    async def _parse_card(self, card, listing_type):
+    async def _parse_card(self, card, listing_type, property_type):
         try:
             link_el = await card.query_selector("a[aria-label='Listing link']")
             if not link_el:
@@ -144,6 +144,7 @@ class BayutScraper:
                 "listing_type": listing_type,
                 "source_url": source_url,
                 "image_urls": image_urls,
+                "property_type": property_type,
                 "source": "bayut",
             }
 

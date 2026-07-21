@@ -3,6 +3,16 @@
 
 {% block title %}{{ listing.title }} | LUXOR ESTATE{% endblock %}
 
+{% block extra_css %}
+<style>
+    .lightbox:target { position: fixed; inset: 0; z-index: 99; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.92); }
+    .lb-close { position: absolute; top: 24px; right: 24px; color: white; font-size: 32px; text-decoration: none; z-index: 100; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 50%; }
+    .lb-prev { position: absolute; left: 24px; color: white; font-size: 36px; text-decoration: none; z-index: 100; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 50%; }
+    .lb-next { position: absolute; right: 24px; color: white; font-size: 36px; text-decoration: none; z-index: 100; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 50%; }
+    .lb-img { max-height: 88vh; max-width: 88vw; object-fit: contain; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="max-w-container-max mx-auto px-base md:px-xl py-lg">
 
@@ -14,86 +24,92 @@
     <!-- Hero Image -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden mb-md">
         {% if listing.primary_image_url %}
-        <img src="{{ listing.primary_image_url }}" alt="{{ listing.title }}" class="w-full h-[300px] md:h-[480px] object-cover"/>
+        <img src="{{ listing.primary_image_url }}" alt="{{ listing.title }}" class="w-full h-[280px] md:h-[450px] object-cover"/>
         {% else %}
-        <div class="w-full h-[300px] md:h-[480px] bg-surface-container flex items-center justify-center">
+        <div class="w-full h-[280px] md:h-[450px] bg-surface-container flex items-center justify-center">
             <span class="material-symbols-outlined text-[80px] text-outline">image</span>
         </div>
         {% endif %}
     </div>
 
-    <!-- Photo Gallery — all images -->
+    <!-- Photo Gallery with Lightbox -->
     {% if listing.images.all %}
     <div class="mb-lg">
-        <h3 class="text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm">Photo Gallery</h3>
-        <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-sm">
+        <h3 class="text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm">
+            Photo Gallery ({{ listing.images.all|length }})
+        </h3>
+        <div class="flex gap-sm overflow-x-auto pb-sm custom-scrollbar">
             {% for image in listing.images.all %}
-            <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden aspect-square">
+            <a href="#lb-{{ forloop.counter0 }}" class="shrink-0 w-32 h-24 md:w-40 md:h-32 rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all cursor-pointer">
                 {% if image.image_url %}
-                <img src="{{ image.image_url }}" alt="" class="w-full h-full object-cover"/>
+                <img src="{{ image.image_url }}" alt="" class="w-full h-full object-cover" loading="lazy"/>
                 {% elif image.image %}
-                <img src="{{ image.image.url }}" alt="" class="w-full h-full object-cover"/>
+                <img src="{{ image.image.url }}" alt="" class="w-full h-full object-cover" loading="lazy"/>
                 {% endif %}
-            </div>
+            </a>
             {% endfor %}
         </div>
     </div>
+
+    <!-- Lightbox overlays -->
+    {% for image in listing.images.all %}
+    <div id="lb-{{ forloop.counter0 }}" class="lightbox">
+        <a href="#" class="lb-close">&times;</a>
+        {% if not forloop.first %}<a href="#lb-{{ forloop.counter0|add:'-1' }}" class="lb-prev">&larr;</a>{% endif %}
+        {% if not forloop.last %}<a href="#lb-{{ forloop.counter0|add:'1' }}" class="lb-next">&rarr;</a>{% endif %}
+        {% if image.image_url %}
+        <img src="{{ image.image_url }}" alt="" class="lb-img"/>
+        {% elif image.image %}
+        <img src="{{ image.image.url }}" alt="" class="lb-img"/>
+        {% endif %}
+    </div>
+    {% endfor %}
     {% endif %}
 
-    <!-- Two-column: right card + left content -->
+    <!-- Two-column -->
     <div class="flex flex-col lg:flex-row gap-lg">
-        
-        <!-- Left content area -->
+
         <div class="flex-1 space-y-lg">
 
-            <!-- Title & Location -->
             <div>
                 <div class="mb-xs">
-                    <span class="text-label-sm text-primary bg-primary-container/30 px-xs py-[2px] rounded uppercase capitalize">{{ listing.source }}</span>
+                    <span class="text-label-sm text-primary bg-secondary-fixed/30 px-xs py-[2px] rounded uppercase capitalize">{{ listing.source }}</span>
+                    {% if listing.property_type %}
+                    <span class="text-label-sm text-secondary bg-secondary-fixed/30 px-xs py-[2px] rounded uppercase ml-xs">{{ listing.property_type }}</span>
+                    {% endif %}
                 </div>
-                <h1 class="text-h2 font-h2 text-on-surface mb-xs">{{ listing.title }}</h1>
+                <h1 class="text-h2 font-h2 text-primary mb-xs">{{ listing.title }}</h1>
                 <p class="flex items-center gap-xs text-on-surface-variant text-body-md">
                     <span class="material-symbols-outlined text-outline text-[18px]">location_on</span>
                     {{ listing.address|default:listing.city|title }}
                 </p>
             </div>
 
-            <!-- Stats Bar -->
             {% if listing.bedrooms or listing.bathrooms or listing.area %}
             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
                 <div class="flex gap-lg">
                     {% if listing.bedrooms %}
                     <div class="flex items-center gap-sm">
-                        <span class="material-symbols-outlined text-primary text-[28px]">bed</span>
-                        <div>
-                            <p class="text-h4 font-price-display text-on-surface">{{ listing.bedrooms }}</p>
-                            <p class="text-label-sm text-on-surface-variant">Bedrooms</p>
-                        </div>
+                        <span class="material-symbols-outlined text-primary/60 text-[28px]">bed</span>
+                        <div><p class="text-h4 font-price-display text-primary">{{ listing.bedrooms }}</p><p class="text-label-sm text-on-surface-variant">Bedrooms</p></div>
                     </div>
                     {% endif %}
                     {% if listing.bathrooms %}
                     <div class="flex items-center gap-sm">
-                        <span class="material-symbols-outlined text-primary text-[28px]">bathtub</span>
-                        <div>
-                            <p class="text-h4 font-price-display text-on-surface">{{ listing.bathrooms }}</p>
-                            <p class="text-label-sm text-on-surface-variant">Bathrooms</p>
-                        </div>
+                        <span class="material-symbols-outlined text-primary/60 text-[28px]">bathtub</span>
+                        <div><p class="text-h4 font-price-display text-primary">{{ listing.bathrooms }}</p><p class="text-label-sm text-on-surface-variant">Bathrooms</p></div>
                     </div>
                     {% endif %}
                     {% if listing.area %}
                     <div class="flex items-center gap-sm">
-                        <span class="material-symbols-outlined text-primary text-[28px]">square_foot</span>
-                        <div>
-                            <p class="text-h4 font-price-display text-on-surface">{{ listing.area }}</p>
-                            <p class="text-label-sm text-on-surface-variant">sqm</p>
-                        </div>
+                        <span class="material-symbols-outlined text-primary/60 text-[28px]">square_foot</span>
+                        <div><p class="text-h4 font-price-display text-primary">{{ listing.area }}</p><p class="text-label-sm text-on-surface-variant">sqm</p></div>
                     </div>
                     {% endif %}
                 </div>
             </div>
             {% endif %}
 
-            <!-- Description -->
             {% if listing.description %}
             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
                 <h3 class="text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm">Description</h3>
@@ -101,47 +117,31 @@
             </div>
             {% endif %}
 
-            <!-- Details Table -->
             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
-                <h3 class="text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm">Property Details</h3>
+                <h3 class="text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm">Details</h3>
                 <div class="space-y-sm">
-                    <div class="flex justify-between text-body-md py-xs border-b border-outline-variant/50">
-                        <span class="text-on-surface-variant">Listing Type</span>
-                        <span class="text-on-surface font-semibold capitalize">{{ listing.get_listing_type_display|default:listing.listing_type }}</span>
-                    </div>
-                    <div class="flex justify-between text-body-md py-xs border-b border-outline-variant/50">
-                        <span class="text-on-surface-variant">City</span>
-                        <span class="text-on-surface font-semibold">{{ listing.city|title }}</span>
-                    </div>
+                    <div class="flex justify-between text-body-md py-xs border-b border-outline-variant/50"><span class="text-on-surface-variant">Type</span><span class="text-primary font-semibold capitalize">{{ listing.get_listing_type_display|default:listing.listing_type }}</span></div>
+                    <div class="flex justify-between text-body-md py-xs border-b border-outline-variant/50"><span class="text-on-surface-variant">City</span><span class="text-primary font-semibold">{{ listing.city|title }}</span></div>
+                    {% if listing.property_type %}
+                    <div class="flex justify-between text-body-md py-xs border-b border-outline-variant/50"><span class="text-on-surface-variant">Property</span><span class="text-primary font-semibold capitalize">{{ listing.property_type }}</span></div>
+                    {% endif %}
                     {% if listing.rating %}
-                    <div class="flex justify-between text-body-md py-xs">
-                        <span class="text-on-surface-variant">Rating</span>
-                        <span class="text-primary font-semibold flex items-center gap-xs">
-                            <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">star</span>
-                            {{ listing.rating }}
-                        </span>
-                    </div>
+                    <div class="flex justify-between text-body-md py-xs"><span class="text-on-surface-variant">Rating</span><span class="text-secondary font-semibold flex items-center gap-xs"><span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL'1;">star</span>{{ listing.rating }}</span></div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Google Map -->
             {% if listing.latitude and listing.longitude %}
-            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
-                <h3 class="text-label-sm font-label-sm text-on-surface-variant uppercase p-md pb-0">Location</h3>
-                <iframe 
-                    class="w-full h-[350px] border-0"
-                    loading="lazy"
-                    allowfullscreen
-                    referrerpolicy="no-referrer-when-downgrade"
-                    src="https://www.google.com/maps/embed/v1/place?key=&amp;q={{ listing.latitude }},{{ listing.longitude }}&amp;zoom=15">
-                </iframe>
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
+                <a href="https://www.google.com/maps?q={{ listing.latitude }},{{ listing.longitude }}" target="_blank" rel="noopener" class="btn-outline border border-primary text-primary hover:bg-primary hover:text-on-primary flex items-center justify-center gap-sm">
+                    <span class="material-symbols-outlined">location_on</span>
+                    View on Google Maps
+                </a>
             </div>
             {% endif %}
 
         </div>
 
-        <!-- Right Card — sticky on desktop -->
         <div class="w-full lg:w-[380px] shrink-0">
             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md lg:sticky lg:top-32">
 
@@ -152,7 +152,7 @@
                     <form method="POST" action="{% url 'toggle_favorite' listing.pk %}" class="flex-1">
                         {% csrf_token %}
                         <button type="submit" class="w-full btn-outline border-2 {% if listing.is_favorited %}border-error text-error hover:bg-error hover:text-on-error{% else %}border-primary text-primary hover:bg-primary hover:text-on-primary{% endif %} flex items-center justify-center gap-sm">
-                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' {% if listing.is_favorited %}1{% else %}0{% endif %}, 'wght' 400, 'GRAD' 0, 'opsz' 24;">favorite</span>
+                            <span class="material-symbols-outlined" style="font-variation-settings:'FILL'{% if listing.is_favorited %}1{% else %}0{% endif %};">favorite</span>
                             {% if listing.is_favorited %}Saved{% else %}Favorites{% endif %}
                         </button>
                     </form>
@@ -165,7 +165,7 @@
                     {% endif %}
                 </div>
                 {% if user == listing.owner %}
-                <form method="POST" action="{% url 'delete_listing' listing.pk %}" onsubmit="return confirm('Are you sure you want to delete this listing?');">
+                <form method="POST" action="{% url 'delete_listing' listing.pk %}" onsubmit="return confirm('Delete this listing?');">
                     {% csrf_token %}
                     <button type="submit" class="w-full btn-outline border-2 border-error text-error hover:bg-error hover:text-on-error flex items-center justify-center gap-sm mt-sm">
                         <span class="material-symbols-outlined">delete</span>
@@ -175,15 +175,13 @@
                 {% endif %}
 
                 {% if listing.owner %}
-                <div class="border-t border-outline-variant pt-md">
+                <div class="border-t border-outline-variant pt-md mt-md">
                     <p class="text-label-sm text-on-surface-variant uppercase mb-sm">Listed by</p>
                     <div class="flex items-center gap-sm">
                         {% if listing.owner.profile_picture %}
-                        <img src="{{ listing.owner.profile_picture.url }}" alt="" class="w-12 h-12 rounded-full object-cover"/>
+                        <img src="{{ listing.owner.profile_picture.url }}" alt="" class="w-10 h-10 rounded-full object-cover"/>
                         {% else %}
-                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span class="material-symbols-outlined text-primary">person</span>
-                        </div>
+                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center"><span class="material-symbols-outlined text-primary">person</span></div>
                         {% endif %}
                         <div>
                             <p class="text-body-md font-semibold text-on-surface">{{ listing.owner.display_name|default:listing.owner.first_name }}</p>

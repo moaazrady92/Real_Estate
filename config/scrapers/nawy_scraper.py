@@ -32,16 +32,16 @@ class NawyScraper:
     }
 
     URLS = [
-        ("type=apartment&purpose=sale", "for_sale"),
-        ("type=apartment&purpose=rent", "for_rent"),
-        ("type=villa&purpose=sale", "for_sale"),
-        ("type=villa&purpose=rent", "for_rent"),
-        ("type=townhouse&purpose=sale", "for_sale"),
-        ("type=townhouse&purpose=rent", "for_rent"),
-        ("type=duplex&purpose=sale", "for_sale"),
-        ("type=duplex&purpose=rent", "for_rent"),
-        ("type=penthouse&purpose=sale", "for_sale"),
-        ("type=penthouse&purpose=rent", "for_rent"),
+        ("type=apartment&purpose=sale", "for_sale", "apartment"),
+        ("type=apartment&purpose=rent", "for_rent", "apartment"),
+        ("type=villa&purpose=sale", "for_sale", "villa"),
+        ("type=villa&purpose=rent", "for_rent", "villa"),
+        ("type=townhouse&purpose=sale", "for_sale", "townhouse"),
+        ("type=townhouse&purpose=rent", "for_rent", "townhouse"),
+        ("type=duplex&purpose=sale", "for_sale", "duplex"),
+        ("type=duplex&purpose=rent", "for_rent", "duplex"),
+        ("type=penthouse&purpose=sale", "for_sale", "penthouse"),
+        ("type=penthouse&purpose=rent", "for_rent", "penthouse"),
     ]
 
     def __init__(self, max_pages=100):
@@ -58,7 +58,7 @@ class NawyScraper:
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                            "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
             )
-            for params, listing_type in self.URLS:
+            for params, listing_type, property_type in self.URLS:
                 page = await context.new_page()
                 for page_num in range(1, self.max_pages + 1):
                     url = f"{self.BASE_URL}/search?{params}&page={page_num}"
@@ -75,7 +75,7 @@ class NawyScraper:
                             break
 
                         for card in cards:
-                            listing = await self._parse_card(card, listing_type)
+                            listing = await self._parse_card(card, listing_type, property_type)
                             if listing:
                                 all_listings.append(listing)
 
@@ -87,7 +87,7 @@ class NawyScraper:
             await browser.close()
         return all_listings
 
-    async def _parse_card(self, card, listing_type="for_sale"):
+    async def _parse_card(self, card, listing_type="for_sale", property_type=""):
         try:
             href = await card.get_attribute("href") or ""
             if not href:
@@ -137,6 +137,7 @@ class NawyScraper:
                 "listing_type": listing_type,
                 "source_url": source_url,
                 "image_urls": image_urls,
+                "property_type": property_type,
                 "source": "nawy",
             }
 

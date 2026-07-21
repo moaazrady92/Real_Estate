@@ -111,6 +111,7 @@ def listing_list(request):
 
     listing_type = request.GET.get("listing_type", "for_sale")
     city = request.GET.get("city", "")
+    property_type = request.GET.get("property_type", "")
     min_price = request.GET.get("min_price", "")
     max_price = request.GET.get("max_price", "")
     sources = request.GET.getlist("source", [])
@@ -120,6 +121,8 @@ def listing_list(request):
         listings = listings.filter(listing_type=listing_type)
     if city:
         listings = listings.filter(city__iexact=city)
+    if property_type:
+        listings = listings.filter(property_type=property_type)
     if min_price:
         listings = listings.filter(price__gte=min_price)
     if max_price:
@@ -127,10 +130,12 @@ def listing_list(request):
     if sources:
         listings = listings.filter(source__in=sources)
 
-    ordering = []
+    ordering = ["-image_count"]
     if sort in ["price", "-price", "-created_at", "created_at"]:
         ordering.append(sort)
-    ordered = listings.order_by(OrderBy(F("image_count"), descending=True), *ordering)
+    # Items with property_type come first, empty property_type at end
+    ordering.append(F("property_type").asc(nulls_last=True))
+    ordered = listings.order_by(*ordering)
 
     paginator = Paginator(ordered, 20)
     page_number = request.GET.get("page", 1)

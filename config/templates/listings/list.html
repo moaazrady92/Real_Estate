@@ -7,7 +7,6 @@
 <div class="max-w-container-max mx-auto px-base md:px-xl py-lg">
     <div class="flex flex-col md:flex-row gap-gutter">
 
-        <!-- Sidebar Filters -->
         <aside class="w-full md:w-80 shrink-0">
             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md sticky top-32">
                 <div class="flex items-center justify-between mb-md">
@@ -16,6 +15,7 @@
                 </div>
 
                 <form method="GET" action="{% url 'home' %}">
+
                     <div class="mb-lg">
                         <label class="block text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm">Listing Type</label>
                         <div class="flex gap-sm">
@@ -32,7 +32,7 @@
 
                     <div class="mb-lg">
                         <label class="block text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm" for="city">City</label>
-                        <select id="city" name="city" class="w-full bg-surface-container border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary text-on-surface">
+                        <select id="city" name="city" class="w-full bg-white border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary">
                             <option value="">All Cities</option>
                             {% for city in cities %}
                             <option value="{{ city }}" {% if request.GET.city == city %}selected{% endif %}>{{ city|title }}</option>
@@ -41,11 +41,23 @@
                     </div>
 
                     <div class="mb-lg">
+                        <label class="block text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm">Property Type</label>
+                        <select name="property_type" class="w-full bg-white border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary">
+                            <option value="">All Types</option>
+                            <option value="apartment" {% if request.GET.property_type == 'apartment' %}selected{% endif %}>Apartment</option>
+                            <option value="villa" {% if request.GET.property_type == 'villa' %}selected{% endif %}>Villa</option>
+                            <option value="townhouse" {% if request.GET.property_type == 'townhouse' %}selected{% endif %}>Townhouse</option>
+                            <option value="duplex" {% if request.GET.property_type == 'duplex' %}selected{% endif %}>Duplex</option>
+                            <option value="penthouse" {% if request.GET.property_type == 'penthouse' %}selected{% endif %}>Penthouse</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-lg">
                         <label class="block text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm">Price Range (EGP)</label>
                         <div class="flex items-center gap-xs">
-                            <input class="w-full bg-surface-container border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary text-on-surface" placeholder="Min" type="number" name="min_price" value="{{ request.GET.min_price|default:'' }}">
+                            <input class="w-full bg-white border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary" placeholder="Min" type="number" name="min_price" value="{{ request.GET.min_price|default:'' }}">
                             <span class="text-outline">-</span>
-                            <input class="w-full bg-surface-container border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary text-on-surface" placeholder="Max" type="number" name="max_price" value="{{ request.GET.max_price|default:'' }}">
+                            <input class="w-full bg-white border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary" placeholder="Max" type="number" name="max_price" value="{{ request.GET.max_price|default:'' }}">
                         </div>
                     </div>
 
@@ -61,14 +73,16 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full btn-primary bg-primary text-on-primary hover:bg-primary-hover">
+                    <!-- Hidden: preserve sort -->
+                    <input type="hidden" name="sort" value="{{ request.GET.sort|default:'-created_at' }}">
+
+                    <button type="submit" class="w-full py-sm bg-primary text-on-primary rounded-lg font-semibold hover:bg-primary-hover transition-all">
                         Apply Filters
                     </button>
                 </form>
             </div>
         </aside>
 
-        <!-- Listings Grid -->
         <section class="flex-1">
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-sm mb-lg">
                 <div>
@@ -79,11 +93,20 @@
                 </div>
                 <div class="flex items-center gap-sm">
                     <span class="text-label-sm text-outline whitespace-nowrap uppercase">Sort By:</span>
-                    <select class="bg-transparent border-none text-primary font-semibold text-body-md focus:ring-0 cursor-pointer" name="sort" onchange="window.location.href='?{% for k,v in request.GET.items %}{% if k != 'sort' and k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}sort=' + this.value">
-                        <option value="-created_at" {% if request.GET.sort == '-created_at' or not request.GET.sort %}selected{% endif %}>Newest First</option>
-                        <option value="price" {% if request.GET.sort == 'price' %}selected{% endif %}>Price: Low to High</option>
-                        <option value="-price" {% if request.GET.sort == '-price' %}selected{% endif %}>Price: High to Low</option>
-                    </select>
+                    <form method="GET" action="{% url 'home' %}" class="inline">
+                        {% for key, values in request.GET.lists %}
+                            {% for val in values %}
+                                {% if key != 'sort' and key != 'page' %}
+                                <input type="hidden" name="{{ key }}" value="{{ val }}">
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                        <select name="sort" class="bg-transparent border-none text-primary font-semibold text-body-md focus:ring-0 cursor-pointer" onchange="this.form.submit()">
+                            <option value="-created_at" {% if request.GET.sort == '-created_at' or not request.GET.sort %}selected{% endif %}>Newest First</option>
+                            <option value="price" {% if request.GET.sort == 'price' %}selected{% endif %}>Price: Low to High</option>
+                            <option value="-price" {% if request.GET.sort == '-price' %}selected{% endif %}>Price: High to Low</option>
+                        </select>
+                    </form>
                 </div>
             </div>
 
@@ -101,7 +124,7 @@
                 <span class="material-symbols-outlined text-[64px] text-outline">search_off</span>
                 <h3 class="text-h3 font-h3 text-primary mt-md">No properties found</h3>
                 <p class="text-body-md text-on-surface-variant mt-xs">Try adjusting your filters or check back later.</p>
-                <a href="{% url 'home' %}" class="inline-block mt-md btn-primary bg-primary text-on-primary hover:bg-primary-hover">Clear Filters</a>
+                <a href="{% url 'home' %}" class="inline-block mt-md px-lg py-sm bg-primary text-on-primary rounded-lg font-semibold hover:bg-primary-hover transition-all">Clear Filters</a>
             </div>
             {% endif %}
         </section>

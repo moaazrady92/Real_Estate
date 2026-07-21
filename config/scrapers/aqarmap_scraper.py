@@ -75,8 +75,9 @@ class AqarmapScraper:
                 "address": address,
                 "listing_type": self.listing_type,
                 "source_url": source_url,
-                "image_urls": image_urls,
-                "source": "aqarmap",
+            "image_urls": image_urls,
+            "property_type": "",
+            "source": "aqarmap",
             }
         except Exception as e:
             logger.warning("Failed to parse card: %s", e)

@@ -41,6 +41,7 @@ class Listing(models.Model):
     city = models.CharField(max_length=50, choices=CITY_CHOICES, blank=True)
     address = models.CharField(max_length=300, blank=True)
     listing_type = models.CharField(max_length=10, choices=LISTING_TYPE_CHOICES, blank=True)
+    property_type = models.CharField(max_length=30, blank=True)
     source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default="manual")
     source_url = models.URLField(blank=True, null=True, unique=True)
     bedrooms = models.PositiveSmallIntegerField(null=True, blank=True)

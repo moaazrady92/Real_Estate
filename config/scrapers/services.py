@@ -61,6 +61,7 @@ def run_aqarmap_scraper(location_path, max_pages=100, scrape_details=False):
                     "city": item.get("city", ""),
                     "address": item["address"],
                     "listing_type": item.get("listing_type", ""),
+                    "property_type": item.get("property_type", ""),
                     "source": "aqarmap",
                 },
             )
@@ -111,6 +112,7 @@ def run_bayut_scraper(max_pages=100, scrape_details=False):
                     "city": item.get("city", ""),
                     "address": item["address"],
                     "listing_type": item.get("listing_type", ""),
+                    "property_type": item.get("property_type", ""),
                     "source": "bayut",
                 },
             )
@@ -161,6 +163,7 @@ def run_nawy_scraper(max_pages=100, scrape_details=False):
                     "city": item.get("city", ""),
                     "address": item["address"],
                     "listing_type": item.get("listing_type", "for_sale"),
+                    "property_type": item.get("property_type", ""),
                     "source": "nawy",
                 },
             )
