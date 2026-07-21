@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile | LUXOR ESTATE{% endblock %}
+
+{% block content %}
+<div class="max-w-container-max mx-auto px-base md:px-xl py-lg">
+    <div class="flex flex-col lg:flex-row gap-lg">
+
+        <!-- Profile Sidebar -->
+        <aside class="w-full lg:w-80 shrink-0">
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md text-center">
+                {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="" class="w-24 h-24 rounded-full mx-auto object-cover mb-sm border-4 border-primary/10"/>
+                {% else %}
+                <div class="w-24 h-24 rounded-full mx-auto mb-sm bg-primary/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[48px] text-primary">person</span>
+                </div>
+                {% endif %}
+
+                <h2 class="text-h4 font-h4 text-primary">{{ user.display_name|default:user.first_name }}</h2>
+                <p class="text-body-md text-on-surface-variant mb-sm">{{ user.email }}</p>
+                <span class="px-sm py-xs rounded-lg text-label-sm font-label-sm uppercase {% if user.role == 'seller' %}bg-secondary-container text-on-secondary-container{% else %}bg-primary-container/30 text-primary{% endif %}">
+                    {{ user.role|title }}
+                </span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 space-y-lg">
+
+            <!-- Tabs -->
+            <div class="flex border-b border-outline-variant">
+                <button class="px-lg py-sm text-label-sm font-label-sm border-b-2 border-primary text-primary" onclick="switchProfileTab('edit')" id="tab-edit">Edit Profile</button>
+                {% if user.role == 'seller' %}
+                <button class="px-lg py-sm text-label-sm font-label-sm border-b-2 border-transparent text-on-surface-variant hover:text-primary" onclick="switchProfileTab('listings')" id="tab-listings">My Listings</button>
+                {% endif %}
+                <button class="px-lg py-sm text-label-sm font-label-sm border-b-2 border-transparent text-on-surface-variant hover:text-primary" onclick="switchProfileTab('favorites')" id="tab-favorites">My Favorites</button>
+            </div>
+
+            <!-- Edit Profile Tab -->
+            <div id="panel-edit" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
+                {% if messages %}
+                <div class="space-y-xs mb-md">
+                    {% for message in messages %}
+                    <div class="p-md bg-secondary-container/30 border border-secondary rounded-lg">
+                        <p class="text-secondary text-body-md">{{ message }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="POST" action="{% url 'profile' %}" enctype="multipart/form-data" class="space-y-md">
+                    {% csrf_token %}
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="first_name">First Name</label>
+                            <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="first_name" name="first_name" value="{{ user.first_name }}" required type="text"/>
+                        </div>
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="last_name">Last Name</label>
+                            <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="last_name" name="last_name" value="{{ user.last_name }}" required type="text"/>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-xs">
+                        <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="display_name">Display Name</label>
+                        <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="display_name" name="display_name" value="{{ user.display_name }}" placeholder="How others see you" type="text"/>
+                    </div>
+
+                    <div class="flex flex-col gap-xs">
+                        <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="phone_number">Phone Number</label>
+                        <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="phone_number" name="phone_number" value="{{ user.phone_number }}" type="tel"/>
+                    </div>
+
+                    <div class="flex flex-col gap-xs">
+                        <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="bio">Bio</label>
+                        <textarea class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="bio" name="bio" rows="3" placeholder="Tell us about yourself...">{{ user.bio }}</textarea>
+                    </div>
+
+                    <div class="flex flex-col gap-xs">
+                        <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="profile_picture">Profile Picture</label>
+                        <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="profile_picture" name="profile_picture" type="file" accept="image/*"/>
+                    </div>
+
+                    <button type="submit" class="px-lg py-sm bg-primary text-on-primary rounded-lg font-semibold hover:bg-secondary transition-all">
+                        Save Changes
+                    </button>
+                </form>
+            </div>
+
+            <!-- My Listings Tab -->
+            {% if user.role == 'seller' %}
+            <div id="panel-listings" class="hidden space-y-md">
+                {% if user.listings.exists %}
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
+                    {% for listing in user.listings.all %}
+                        {% include 'includes/property_card.html' with listing=listing %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-xl bg-surface-container-lowest border border-outline-variant rounded-xl">
+                    <span class="material-symbols-outlined text-[48px] text-outline">home_work</span>
+                    <p class="text-body-md text-on-surface-variant mt-sm">You haven't posted any listings yet.</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- My Favorites Tab -->
+            <div id="panel-favorites" class="hidden space-y-md">
+                {% if favorites.exists %}
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
+                    {% for fav in favorites %}
+                        {% include 'includes/property_card.html' with listing=fav.listing %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-xl bg-surface-container-lowest border border-outline-variant rounded-xl">
+                    <span class="material-symbols-outlined text-[48px] text-outline">favorite</span>
+                    <p class="text-body-md text-on-surface-variant mt-sm">No favorites yet. Start browsing!</p>
+                    <a href="{% url 'home' %}" class="inline-block mt-md px-lg py-sm bg-primary text-on-primary rounded-lg font-semibold hover:bg-secondary transition-all">Browse Listings</a>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function switchProfileTab(tab) {
+        ['edit', 'listings', 'favorites'].forEach(t => {
+            const panel = document.getElementById('panel-' + t);
+            const tabBtn = document.getElementById('tab-' + t);
+            if (panel) panel.classList.add('hidden');
+            if (tabBtn) {
+                tabBtn.classList.remove('border-primary', 'text-primary');
+                tabBtn.classList.add('border-transparent', 'text-on-surface-variant');
+            }
+        });
+
+        const activePanel = document.getElementById('panel-' + tab);
+        const activeTab = document.getElementById('tab-' + tab);
+        if (activePanel) activePanel.classList.remove('hidden');
+        if (activeTab) {
+            activeTab.classList.remove('border-transparent', 'text-on-surface-variant');
+            activeTab.classList.add('border-primary', 'text-primary');
+        }
+    }
+</script>
+{% endblock %}

@@ -65,6 +65,16 @@ class Listing(models.Model):
     def __str__(self):
         return f"{self.title}"
 
+    @property
+    def primary_image_url(self):
+        primary = self.images.filter(is_primary=True).first()
+        if primary:
+            return primary.image_url or (primary.image.url if primary.image else None)
+        first = self.images.first()
+        if first:
+            return first.image_url or (first.image.url if first.image else None)
+        return None
+
 class ListingImage(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to="listing_images/", null=True, blank=True)

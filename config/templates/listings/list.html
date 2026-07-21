@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title|default:"Properties" }} | LUXOR ESTATE{% endblock %}
+
+{% block content %}
+<div class="max-w-container-max mx-auto px-base md:px-xl py-lg">
+    <div class="flex flex-col md:flex-row gap-gutter">
+
+        <!-- Sidebar / Advanced Filters -->
+        <aside class="w-full md:w-80 shrink-0">
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md sticky top-32">
+                <div class="flex items-center justify-between mb-md">
+                    <h2 class="text-h4 font-h4 text-primary">Filters</h2>
+                    <a href="{% url 'home' %}" class="text-label-sm text-outline hover:text-primary transition-colors">Clear All</a>
+                </div>
+
+                <form method="GET" action="{% url 'home' %}">
+                    <!-- Listing Type -->
+                    <div class="mb-lg">
+                        <label class="block text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm">Listing Type</label>
+                        <div class="flex gap-sm">
+                            <label class="flex-1 cursor-pointer">
+                                <input class="hidden peer" name="listing_type" type="radio" value="for_sale" {% if request.GET.listing_type == 'for_sale' or not request.GET.listing_type %}checked{% endif %} onchange="this.form.submit()"/>
+                                <div class="text-center py-xs px-sm border border-outline-variant rounded-lg peer-checked:bg-primary peer-checked:text-on-primary peer-checked:border-primary transition-all text-body-md">For Sale</div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input class="hidden peer" name="listing_type" type="radio" value="for_rent" {% if request.GET.listing_type == 'for_rent' %}checked{% endif %} onchange="this.form.submit()"/>
+                                <div class="text-center py-xs px-sm border border-outline-variant rounded-lg peer-checked:bg-primary peer-checked:text-on-primary peer-checked:border-primary transition-all text-body-md">For Rent</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- City Selection -->
+                    <div class="mb-lg">
+                        <label class="block text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm" for="city">City</label>
+                        <select id="city" name="city" class="w-full bg-white border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary">
+                            <option value="">All Cities</option>
+                            {% for city in cities %}
+                            <option value="{{ city }}" {% if request.GET.city == city %}selected{% endif %}>{{ city|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Price Range -->
+                    <div class="mb-lg">
+                        <label class="block text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm">Price Range (EGP)</label>
+                        <div class="flex items-center gap-xs">
+                            <input class="w-full bg-white border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary" placeholder="Min" type="number" name="min_price" value="{{ request.GET.min_price|default:'' }}">
+                            <span class="text-outline">-</span>
+                            <input class="w-full bg-white border border-outline-variant rounded-lg p-sm text-body-md focus:border-primary" placeholder="Max" type="number" name="max_price" value="{{ request.GET.max_price|default:'' }}">
+                        </div>
+                    </div>
+
+                    <!-- Source -->
+                    <div class="mb-md">
+                        <label class="block text-label-sm font-label-sm text-on-surface-variant uppercase mb-sm">Property Source</label>
+                        <div class="space-y-sm">
+                            {% for source in sources %}
+                            <label class="flex items-center gap-sm cursor-pointer group">
+                                <input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox" name="source" value="{{ source }}" {% if source in selected_sources %}checked{% endif %}>
+                                <span class="text-body-md group-hover:text-primary transition-colors capitalize">{{ source }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-sm bg-primary text-on-primary rounded-lg font-semibold hover:bg-secondary transition-all">
+                        Apply Filters
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Listings Area -->
+        <section class="flex-1">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-sm mb-lg">
+                <div>
+                    <h1 class="text-h2 font-h2 text-primary">
+                        {% if request.GET.listing_type == 'for_rent' %}Properties for Rent{% else %}Properties for Sale{% endif %}
+                    </h1>
+                    <p class="text-body-md text-on-surface-variant">{{ page_obj.paginator.count }} Properties found in Egypt</p>
+                </div>
+                <div class="flex items-center gap-sm">
+                    <span class="text-label-sm text-outline whitespace-nowrap uppercase">Sort By:</span>
+                    <select class="bg-transparent border-none text-primary font-semibold text-body-md focus:ring-0 cursor-pointer" name="sort" onchange="window.location.href='?{% for k,v in request.GET.items %}{% if k != 'sort' and k != 'page' %}{{ k }}={{ v }}&{% endif %}{% endfor %}sort=' + this.value">
+                        <option value="-created_at" {% if request.GET.sort == '-created_at' or not request.GET.sort %}selected{% endif %}>Newest First</option>
+                        <option value="price" {% if request.GET.sort == 'price' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="-price" {% if request.GET.sort == '-price' %}selected{% endif %}>Price: High to Low</option>
+                    </select>
+                </div>
+            </div>
+
+            {% if listings %}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
+                {% for listing in listings %}
+                    {% if forloop.first %}
+                        {% include 'includes/property_card.html' with listing=listing extra_class="lg:col-span-2 flex flex-col md:flex-row" is_featured=True %}
+                        {% if listing.primary_image_url %}
+                        <style>
+                            .featured-card-img { height: 100%; min-height: 280px; }
+                            @media (min-width: 768px) { .featured-card-img { min-height: 320px; } }
+                        </style>
+                        {% endif %}
+                    {% else %}
+                        {% include 'includes/property_card.html' with listing=listing %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% include 'includes/pagination.html' %}
+
+            {% else %}
+            <div class="text-center py-xl">
+                <span class="material-symbols-outlined text-[64px] text-outline">search_off</span>
+                <h3 class="text-h3 font-h3 text-primary mt-md">No properties found</h3>
+                <p class="text-body-md text-on-surface-variant mt-xs">Try adjusting your filters or check back later.</p>
+                <a href="{% url 'home' %}" class="inline-block mt-md px-lg py-sm bg-primary text-on-primary rounded-lg font-semibold hover:bg-secondary transition-all">Clear Filters</a>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}

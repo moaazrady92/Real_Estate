@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ listing.title }} | LUXOR ESTATE{% endblock %}
+
+{% block content %}
+<div class="max-w-container-max mx-auto px-base md:px-xl py-lg">
+    <a href="{% url 'home' %}" class="inline-flex items-center gap-xs text-outline hover:text-primary transition-colors mb-md text-body-md">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Back to Listings
+    </a>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+        <!-- Images Column -->
+        <div class="lg:col-span-2 space-y-md">
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+                {% if listing.primary_image_url %}
+                <img src="{{ listing.primary_image_url }}" alt="{{ listing.title }}" class="w-full h-[400px] object-cover"/>
+                {% else %}
+                <div class="w-full h-[400px] bg-surface-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[64px] text-outline">image</span>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if listing.images.all %}
+            <div class="grid grid-cols-4 gap-sm">
+                {% for image in listing.images.all %}
+                <div class="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden h-24 cursor-pointer hover:border-primary transition-all">
+                    {% if image.image_url %}
+                    <img src="{{ image.image_url }}" alt="" class="w-full h-full object-cover"/>
+                    {% elif image.image %}
+                    <img src="{{ image.image.url }}" alt="" class="w-full h-full object-cover"/>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Details Column -->
+        <div class="space-y-md">
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md">
+                <div class="mb-sm">
+                    <span class="text-label-sm font-label-sm text-secondary bg-secondary-fixed/30 px-xs py-[2px] rounded uppercase capitalize">{{ listing.source }}</span>
+                </div>
+
+                <h1 class="text-h3 font-h3 text-primary mb-xs">{{ listing.title }}</h1>
+
+                <p class="flex items-center gap-xs text-on-surface-variant text-body-md mb-md">
+                    <span class="material-symbols-outlined text-outline text-[18px]">location_on</span>
+                    {{ listing.address|default:listing.city|title }}
+                </p>
+
+                <div class="text-primary font-h2 text-h2 font-price-display mb-lg">
+                    {{ listing.price|floatformat:0|intcomma }} EGP
+                </div>
+
+                <div class="flex gap-lg mb-lg pb-md border-b border-outline-variant">
+                    {% if listing.bedrooms %}
+                    <div class="flex items-center gap-xs">
+                        <span class="material-symbols-outlined text-primary/60">bed</span>
+                        <span class="text-body-md text-on-surface-variant">{{ listing.bedrooms }} Beds</span>
+                    </div>
+                    {% endif %}
+                    {% if listing.bathrooms %}
+                    <div class="flex items-center gap-xs">
+                        <span class="material-symbols-outlined text-primary/60">bathtub</span>
+                        <span class="text-body-md text-on-surface-variant">{{ listing.bathrooms }} Baths</span>
+                    </div>
+                    {% endif %}
+                    {% if listing.area %}
+                    <div class="flex items-center gap-xs">
+                        <span class="material-symbols-outlined text-primary/60">square_foot</span>
+                        <span class="text-body-md text-on-surface-variant">{{ listing.area }} sqm</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if listing.description %}
+                <div class="mb-lg">
+                    <h3 class="text-label-sm font-label-sm text-on-surface-variant uppercase mb-xs">Description</h3>
+                    <p class="text-body-md text-on-surface-variant leading-relaxed">{{ listing.description|linebreaksbr }}</p>
+                </div>
+                {% endif %}
+
+                <div class="space-y-sm mb-md">
+                    <div class="flex justify-between text-body-md">
+                        <span class="text-on-surface-variant">Listing Type</span>
+                        <span class="text-primary font-semibold capitalize">{{ listing.get_listing_type_display|default:listing.listing_type }}</span>
+                    </div>
+                    <div class="flex justify-between text-body-md">
+                        <span class="text-on-surface-variant">City</span>
+                        <span class="text-primary font-semibold">{{ listing.city|title }}</span>
+                    </div>
+                    {% if listing.property_type %}
+                    <div class="flex justify-between text-body-md">
+                        <span class="text-on-surface-variant">Property Type</span>
+                        <span class="text-primary font-semibold">{{ listing.property_type|title }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if listing.seller %}
+                <div class="mb-md p-sm bg-surface-container-low rounded-lg">
+                    <p class="text-label-sm font-label-sm text-on-surface-variant uppercase mb-xs">Listed by</p>
+                    <div class="flex items-center gap-sm">
+                        {% if listing.seller.profile_picture %}
+                        <img src="{{ listing.seller.profile_picture.url }}" alt="" class="w-10 h-10 rounded-full object-cover"/>
+                        {% else %}
+                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary">person</span>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <p class="text-body-md font-semibold text-primary">{{ listing.seller.display_name|default:listing.seller.first_name }}</p>
+                            <a href="{% url 'public_profile' listing.seller.pk %}" class="text-label-sm text-secondary hover:underline">View Profile</a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="flex gap-sm">
+                    {% if user.is_authenticated %}
+                    <form method="POST" action="{% url 'toggle_favorite' listing.pk %}" class="flex-1">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full py-sm border-2 {% if listing.is_favorited %}border-error text-error hover:bg-error hover:text-on-error{% else %}border-primary text-primary hover:bg-primary hover:text-on-primary{% endif %} rounded-lg font-semibold transition-all flex items-center justify-center gap-sm">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' {% if listing.is_favorited %}1{% else %}0{% endif %}, 'wght' 400, 'GRAD' 0, 'opsz' 24;">favorite</span>
+                            {% if listing.is_favorited %}Saved{% else %}Add to Favorites{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="{{ listing.source_url }}" target="_blank" rel="noopener" class="flex-1 py-sm bg-primary text-on-primary rounded-lg font-semibold hover:bg-secondary transition-all flex items-center justify-center gap-sm">
+                        <span class="material-symbols-outlined">open_in_new</span>
+                        View Source
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
