@@ -284,7 +284,17 @@ def login_view(request):
         email = request.POST.get("email", "").strip()
         password = request.POST.get("password", "")
 
-        user = authenticate(request, username=email, password=password)
+        if not email or not password:
+            messages.error(request, "Please enter both email and password.")
+            return render(request, "accounts/login.html", {
+                "form": type("F", (), {"errors": False, "email": type("E", (), {"value": lambda: email})(), "password": type("P", (), {"value": lambda: ""})()})(),
+            })
+
+        try:
+            user = authenticate(request, username=email, password=password)
+        except Exception as e:
+            logger.error("Authentication error for %s: %s", email, e)
+            user = None
 
         if user is not None:
             login(request, user)

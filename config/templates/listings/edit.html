@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Listing | LUXOR ESTATE{% endblock %}
+
+{% block content %}
+<div class="max-w-container-max mx-auto px-base md:px-xl py-lg">
+    <a href="{% url 'listing_detail' listing.pk %}" class="inline-flex items-center gap-xs text-outline hover:text-primary transition-colors mb-md text-body-md">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Back to Listing
+    </a>
+
+    <div class="max-w-[700px] mx-auto">
+        <div class="glass-card rounded-xl shadow-[0px_4px_20px_rgba(198,165,85,0.04)] overflow-hidden">
+            <div class="p-lg md:p-xl">
+
+                <div class="text-center mb-lg">
+                    <h1 class="text-h2 font-h2 text-primary">Edit Property</h1>
+                    <p class="text-body-md text-on-surface-variant">Update your property details.</p>
+                </div>
+
+                {% if messages %}
+                <div class="space-y-xs mb-md">
+                    {% for message in messages %}
+                    <div class="p-sm bg-primary-container/20 border border-primary rounded-lg">
+                        <p class="text-primary text-body-md">{{ message }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if errors %}
+                <div class="mb-md p-sm bg-error-container/20 border border-error rounded-lg">
+                    {% for field, error in errors.items %}
+                    <p class="text-error text-body-md">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="POST" action="{% url 'edit_listing' listing.pk %}" enctype="multipart/form-data" class="space-y-md">
+                    {% csrf_token %}
+
+                    <div class="flex flex-col gap-xs">
+                        <label class="text-label-sm text-on-surface-variant uppercase" for="title">Title *</label>
+                        <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="title" name="title" value="{{ listing.title }}" required type="text"/>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm text-on-surface-variant uppercase" for="price">Price (EGP) *</label>
+                            <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="price" name="price" value="{{ listing.price|floatformat:0 }}" required type="number" step="0.01" min="0.01"/>
+                        </div>
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm text-on-surface-variant uppercase" for="listing_type">Listing Type *</label>
+                            <select class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="listing_type" name="listing_type" required>
+                                <option value="for_sale" {% if listing.listing_type == 'for_sale' %}selected{% endif %}>For Sale</option>
+                                <option value="for_rent" {% if listing.listing_type == 'for_rent' %}selected{% endif %}>For Rent</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm text-on-surface-variant uppercase" for="city">City *</label>
+                            <select class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="city" name="city" required>
+                                <option value="">Select City</option>
+                                <option value="cairo" {% if listing.city == 'cairo' %}selected{% endif %}>Cairo</option>
+                                <option value="alexandria" {% if listing.city == 'alexandria' %}selected{% endif %}>Alexandria</option>
+                                <option value="giza" {% if listing.city == 'giza' %}selected{% endif %}>Giza</option>
+                                <option value="new_capital" {% if listing.city == 'new_capital' %}selected{% endif %}>New Capital</option>
+                                <option value="6th_of_october" {% if listing.city == '6th_of_october' %}selected{% endif %}>6th of October</option>
+                                <option value="sharm_el_sheikh" {% if listing.city == 'sharm_el_sheikh' %}selected{% endif %}>Sharm El Sheikh</option>
+                                <option value="hurghada" {% if listing.city == 'hurghada' %}selected{% endif %}>Hurghada</option>
+                                <option value="mansoura" {% if listing.city == 'mansoura' %}selected{% endif %}>Mansoura</option>
+                                <option value="tanta" {% if listing.city == 'tanta' %}selected{% endif %}>Tanta</option>
+                                <option value="luxor" {% if listing.city == 'luxor' %}selected{% endif %}>Luxor</option>
+                                <option value="aswan" {% if listing.city == 'aswan' %}selected{% endif %}>Aswan</option>
+                                <option value="suez" {% if listing.city == 'suez' %}selected{% endif %}>Suez</option>
+                                <option value="ismailia" {% if listing.city == 'ismailia' %}selected{% endif %}>Ismailia</option>
+                                <option value="port_said" {% if listing.city == 'port_said' %}selected{% endif %}>Port Said</option>
+                                <option value="zagazig" {% if listing.city == 'zagazig' %}selected{% endif %}>Zagazig</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm text-on-surface-variant uppercase" for="address">Address</label>
+                            <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="address" name="address" value="{{ listing.address }}" type="text"/>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm text-on-surface-variant uppercase" for="bedrooms">Bedrooms</label>
+                            <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="bedrooms" name="bedrooms" value="{{ listing.bedrooms|default:'' }}" type="number" min="0"/>
+                        </div>
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm text-on-surface-variant uppercase" for="bathrooms">Bathrooms</label>
+                            <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="bathrooms" name="bathrooms" value="{{ listing.bathrooms|default:'' }}" type="number" min="0"/>
+                        </div>
+                        <div class="flex flex-col gap-xs">
+                            <label class="text-label-sm text-on-surface-variant uppercase" for="area">Area (sqm)</label>
+                            <input class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="area" name="area" value="{{ listing.area|default:'' }}" type="number" min="0"/>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-xs">
+                        <label class="text-label-sm text-on-surface-variant uppercase" for="description">Description</label>
+                        <textarea class="w-full px-md py-sm rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all bg-surface-container text-on-surface" id="description" name="description" rows="5">{{ listing.description }}</textarea>
+                    </div>
+
+                    <div class="flex flex-col gap-xs">
+                        <label class="text-label-sm text-on-surface-variant uppercase">Add More Images</label>
+                        <input class="w-full text-body-md text-on-surface file:mr-md file:py-sm file:px-md file:rounded-lg file:border-0 file:bg-primary file:text-on-primary file:text-label-sm file:font-semibold hover:file:bg-primary-hover file:transition-colors" name="images" type="file" accept="image/*" multiple/>
+                        <p class="text-label-sm text-outline">Existing images are kept. New images will be added.</p>
+                    </div>
+
+                    <div class="flex gap-sm">
+                        <button type="submit" class="flex-1 btn-primary bg-primary text-on-primary hover:bg-primary-hover">
+                            Save Changes
+                        </button>
+                        <a href="{% url 'listing_detail' listing.pk %}" class="btn-outline border border-outline-variant text-on-surface-variant hover:text-primary hover:border-primary flex items-center justify-center">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

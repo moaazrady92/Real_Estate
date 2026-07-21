@@ -124,6 +124,12 @@
                         </button>
                     </form>
                     {% endif %}
+                    {% if user == listing.owner %}
+                    <a href="{% url 'edit_listing' listing.pk %}" class="flex-1 btn-primary bg-primary text-on-primary hover:bg-primary-hover flex items-center justify-center gap-sm">
+                        <span class="material-symbols-outlined">edit</span>
+                        Edit
+                    </a>
+                    {% endif %}
                 </div>
             </div>
         </div>

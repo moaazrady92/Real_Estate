@@ -175,3 +175,58 @@ def create_listing(request):
         return render(request, "listings/create.html", {"errors": errors})
 
     return render(request, "listings/create.html")
+
+
+@login_required
+def edit_listing(request, pk):
+    listing = get_object_or_404(Listing, pk=pk)
+
+    if listing.owner != request.user:
+        messages.error(request, "You can only edit your own listings.")
+        return redirect("listing_detail", pk=pk)
+
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip()
+        price = request.POST.get("price", "").strip()
+        listing_type = request.POST.get("listing_type", listing.listing_type)
+        city = request.POST.get("city", listing.city)
+        address = request.POST.get("address", "").strip()
+        bedrooms = request.POST.get("bedrooms", "")
+        bathrooms = request.POST.get("bathrooms", "")
+        area = request.POST.get("area", "")
+        description = request.POST.get("description", "").strip()
+
+        errors = {}
+        if not title:
+            errors["title"] = "Title is required."
+        if not price:
+            errors["price"] = "Price is required."
+        if not city:
+            errors["city"] = "City is required."
+
+        if not errors:
+            listing.title = title
+            listing.price = price
+            listing.listing_type = listing_type
+            listing.city = city
+            listing.address = address
+            listing.bedrooms = bedrooms or None
+            listing.bathrooms = bathrooms or None
+            listing.area = area or None
+            listing.description = description
+            listing.save()
+
+            images = request.FILES.getlist("images")
+            for i, image_file in enumerate(images):
+                ListingImage.objects.create(
+                    listing=listing,
+                    image=image_file,
+                    is_primary=(i == 0 and not listing.images.filter(is_primary=True).exists()),
+                )
+
+            messages.success(request, "Property updated successfully!")
+            return redirect("listing_detail", pk=listing.pk)
+
+        return render(request, "listings/edit.html", {"listing": listing, "errors": errors})
+
+    return render(request, "listings/edit.html", {"listing": listing})
