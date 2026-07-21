@@ -151,60 +151,70 @@ class BayutScraper:
             logger.warning("[Bayut] Card parse error: %s", e)
             return None
 
-    async def scrape_detail(self, context, source_url):
-        try:
+    async def scrape_detail_async(self, source_url):
+        from playwright.async_api import async_playwright
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            context = await browser.new_context(
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                           "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+            )
             page = await context.new_page()
-            await page.goto(source_url, wait_until="networkidle", timeout=30000)
-            await page.wait_for_timeout(2000)
-        except Exception as e:
-            logger.warning("[Bayut] Failed to fetch detail %s: %s", source_url, e)
-            return {}
+            try:
+                await page.goto(source_url, wait_until="networkidle", timeout=30000)
+                await page.wait_for_timeout(2000)
+            except Exception as e:
+                logger.warning("[Bayut] Failed to fetch detail %s: %s", source_url, e)
+                await browser.close()
+                return {}
 
-        detail = {}
+            detail = {}
 
-        try:
-            desc_el = await page.query_selector("[aria-label='Property description'], [class*='description'], [class*='about']")
-            if desc_el:
-                detail["description"] = (await desc_el.inner_text())[:2000]
-        except Exception:
-            pass
+            try:
+                desc_el = await page.query_selector("[aria-label='Property description'], [class*='description'], [class*='about']")
+                if desc_el:
+                    detail["description"] = (await desc_el.inner_text())[:2000]
+            except Exception:
+                pass
 
-        # Extra images
-        try:
-            extra_imgs = []
-            imgs = await page.query_selector_all("[class*='gallery'] img, [class*='slider'] img, [aria-label='Property image']")
-            for img in imgs:
-                url = await img.get_attribute("src") or await img.get_attribute("data-src") or ""
-                if url and "placehold" not in url and url not in extra_imgs:
-                    extra_imgs.append(url)
-            detail["extra_image_urls"] = extra_imgs
-        except Exception:
-            pass
+            try:
+                extra_imgs = []
+                imgs = await page.query_selector_all("[class*='gallery'] img, [class*='slider'] img, [aria-label='Property image']")
+                for img in imgs:
+                    url = await img.get_attribute("src") or await img.get_attribute("data-src") or ""
+                    if url and "placehold" not in url and url not in extra_imgs:
+                        extra_imgs.append(url)
+                detail["extra_image_urls"] = extra_imgs
+            except Exception:
+                pass
 
-        # Features
-        try:
-            feats = await page.query_selector_all("[aria-label='Property features'] li, [class*='amenities'] li, [class*='features'] span")
-            text = " ".join([(await f.inner_text()) for f in feats])
-            import re
-            bed_match = re.search(r"(\d+)\s*Bed", text)
-            if bed_match:
-                detail["bedrooms"] = int(bed_match.group(1))
-            bath_match = re.search(r"(\d+)\s*Bath", text)
-            if bath_match:
-                detail["bathrooms"] = int(bath_match.group(1))
-            area_match = re.search(r"(\d+)\s*(sq.?ft|sq.?m|m²|sq.?\s*ft|sq.?\s*m)", text, re.IGNORECASE)
-            if area_match:
-                area_val = int(area_match.group(1))
-                unit = area_match.group(2).lower()
-                if "ft" in unit:
-                    detail["area"] = int(area_val / 10.764)
-                else:
-                    detail["area"] = area_val
-        except Exception:
-            pass
+            try:
+                feats = await page.query_selector_all("[aria-label='Property features'] li, [class*='amenities'] li, [class*='features'] span")
+                text = " ".join([(await f.inner_text()) for f in feats])
+                import re
+                bed_match = re.search(r"(\d+)\s*Bed", text)
+                if bed_match:
+                    detail["bedrooms"] = int(bed_match.group(1))
+                bath_match = re.search(r"(\d+)\s*Bath", text)
+                if bath_match:
+                    detail["bathrooms"] = int(bath_match.group(1))
+                area_match = re.search(r"(\d+)\s*(sq.?ft|sq.?m|m²|sq.?\s*ft|sq.?\s*m)", text, re.IGNORECASE)
+                if area_match:
+                    area_val = int(area_match.group(1))
+                    unit = area_match.group(2).lower()
+                    if "ft" in unit:
+                        detail["area"] = int(area_val / 10.764)
+                    else:
+                        detail["area"] = area_val
+            except Exception:
+                pass
 
-        await page.close()
-        return detail
+            await browser.close()
+            return detail
+
+    def scrape_detail(self, source_url):
+        import asyncio
+        return asyncio.run(self.scrape_detail_async(source_url))
 
     def _parse_price(self, text):
         digits = re.sub(r"[^\d]", "", text)

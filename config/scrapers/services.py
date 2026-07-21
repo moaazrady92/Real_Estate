@@ -102,11 +102,6 @@ def run_bayut_scraper(max_pages=100, scrape_details=False):
         scraper = BayutScraper(max_pages=max_pages)
         listings = scraper.scrape()
 
-        import asyncio
-
-        async def _scrape_details():
-            pass  # detail scraping for Bayut is async, handled separately
-
         for item in listings:
             obj, was_created = Listing.objects.update_or_create(
                 source_url=item["source_url"],
@@ -125,6 +120,11 @@ def run_bayut_scraper(max_pages=100, scrape_details=False):
                 updated += 1
 
             _save_images(obj, item.get("image_urls", []))
+
+            if scrape_details and was_created:
+                detail = scraper.scrape_detail(item["source_url"])
+                _apply_detail(obj, detail)
+                _save_images(obj, [], detail.get("extra_image_urls", []))
 
         run.status = "success"
         run.listings_found = len(listings)
@@ -170,6 +170,11 @@ def run_nawy_scraper(max_pages=100, scrape_details=False):
                 updated += 1
 
             _save_images(obj, item.get("image_urls", []))
+
+            if scrape_details and was_created:
+                detail = scraper.scrape_detail(item["source_url"])
+                _apply_detail(obj, detail)
+                _save_images(obj, [], detail.get("extra_image_urls", []))
 
         run.status = "success"
         run.listings_found = len(listings)

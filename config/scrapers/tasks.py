@@ -41,7 +41,7 @@ AQARMAP_LOCATIONS = [
 @shared_task
 def scrape_aqarmap_location(location_path, max_pages=100):
     logger.info("Task started: scrape_aqarmap_location(%s)", location_path)
-    run = run_aqarmap_scraper(location_path, max_pages=max_pages)
+    run = run_aqarmap_scraper(location_path, max_pages=max_pages, scrape_details=True)
     result = {
         "location": location_path,
         "status": run.status,
@@ -64,7 +64,7 @@ def scrape_all_aqarmap():
 @shared_task
 def scrape_bayut(max_pages=100):
     logger.info("Task started: scrape_bayut")
-    run = run_bayut_scraper(max_pages=max_pages)
+    run = run_bayut_scraper(max_pages=max_pages, scrape_details=True)
     result = {
         "status": run.status,
         "found": run.listings_found,
@@ -78,7 +78,7 @@ def scrape_bayut(max_pages=100):
 @shared_task
 def scrape_nawy(max_pages=100):
     logger.info("Task started: scrape_nawy")
-    run = run_nawy_scraper(max_pages=max_pages)
+    run = run_nawy_scraper(max_pages=max_pages, scrape_details=True)
     result = {
         "status": run.status,
         "found": run.listings_found,
