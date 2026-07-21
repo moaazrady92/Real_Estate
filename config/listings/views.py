@@ -106,7 +106,7 @@ def listing_list(request):
 
 def listing_detail(request, pk):
     listing = get_object_or_404(
-        Listing.objects.filter(is_active=True).prefetch_related("images", "seller"),
+        Listing.objects.filter(is_active=True).prefetch_related("images").select_related("owner"),
         pk=pk,
     )
 

@@ -95,20 +95,20 @@
                     </div>
                 </div>
 
-                {% if listing.seller %}
+                {% if listing.owner %}
                 <div class="mb-md p-sm bg-surface-container rounded-lg">
                     <p class="text-label-sm text-on-surface-variant uppercase mb-xs">Listed by</p>
                     <div class="flex items-center gap-sm">
-                        {% if listing.seller.profile_picture %}
-                        <img src="{{ listing.seller.profile_picture.url }}" alt="" class="w-10 h-10 rounded-full object-cover"/>
+                        {% if listing.owner.profile_picture %}
+                        <img src="{{ listing.owner.profile_picture.url }}" alt="" class="w-10 h-10 rounded-full object-cover"/>
                         {% else %}
                         <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                             <span class="material-symbols-outlined text-primary">person</span>
                         </div>
                         {% endif %}
                         <div>
-                            <p class="text-body-md font-semibold text-on-surface">{{ listing.seller.display_name|default:listing.seller.first_name }}</p>
-                            <a href="{% url 'public_profile' listing.seller.pk %}" class="text-label-sm text-primary hover:underline">View Profile</a>
+                            <p class="text-body-md font-semibold text-on-surface">{{ listing.owner.display_name|default:listing.owner.first_name }}</p>
+                            <a href="{% url 'public_profile' listing.owner.pk %}" class="text-label-sm text-primary hover:underline">View Profile</a>
                         </div>
                     </div>
                 </div>
