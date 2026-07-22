@@ -6,6 +6,7 @@ from django.contrib.auth import login, logout, authenticate, update_session_auth
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -349,9 +350,24 @@ def public_profile_view(request, pk):
     profile_user = get_object_or_404(User, pk=pk)
     listings = profile_user.listings.filter(is_active=True).prefetch_related("images")
 
+    listings_count = listings.count()
+    avg_rating = listings.exclude(rating__isnull=True).aggregate(
+        avg=Avg("rating")
+    )["avg"]
+    if avg_rating:
+        avg_rating = round(avg_rating, 1)
+
+    city_counts = {}
+    for listing in listings:
+        if listing.city:
+            city_counts[listing.city] = city_counts.get(listing.city, 0) + 1
+
     return render(request, "profile/public.html", {
         "profile_user": profile_user,
         "listings": listings,
+        "listings_count": listings_count,
+        "avg_rating": avg_rating,
+        "city_counts": city_counts,
     })
 
 

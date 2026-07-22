@@ -1,46 +1,59 @@
 {% load humanize %}
-<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:filter-shadow transition-all group">
-    <div class="h-56 relative overflow-hidden">
-        <div class="absolute top-sm left-sm z-10">
-            {% if listing.source == 'user' or listing.source == 'manual' %}
-                <span class="px-sm py-xs bg-white/90 backdrop-blur text-primary text-label-sm font-label-sm rounded uppercase tracking-wider">User Posted</span>
-            {% else %}
-                <span class="px-sm py-xs bg-white/90 backdrop-blur text-primary text-label-sm font-label-sm rounded uppercase tracking-wider capitalize">{{ listing.source }}</span>
-            {% endif %}
+<div class="group bg-white border border-outline-variant rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300">
+    <div class="relative aspect-square overflow-hidden">
+        <a href="{% url 'listing_detail' listing.pk %}">
+            <div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                 {% if listing.primary_image_url %}
+                 style="background-image: url('{{ listing.primary_image_url }}')"
+                 {% else %}
+                 style="background: linear-gradient(135deg, #e3e2e6 0%, #f4f3f7 100%);"
+                 {% endif %}>
+            </div>
+        </a>
+        <div class="absolute top-md left-md bg-white/90 backdrop-blur px-sm py-xs rounded text-label-sm font-label-sm text-primary capitalize">
+            {{ listing.source|default:"Manual" }}
         </div>
-
         {% if user.is_authenticated %}
-        <div class="absolute top-sm right-sm z-10">
+        <div class="absolute bottom-md right-md z-10">
             <form method="POST" action="{% url 'toggle_favorite' listing.pk %}">
                 {% csrf_token %}
-                <button type="submit" class="w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all">
-                    <span class="material-symbols-outlined {% if listing.is_favorited %}text-error{% else %}text-primary{% endif %}" style="font-variation-settings:'FILL'{% if listing.is_favorited %}1{% else %}0{% endif %};">favorite</span>
+                <button type="submit" class="w-9 h-9 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all shadow-sm">
+                    <span class="material-symbols-outlined {% if listing.is_favorited %}text-error{% else %}text-primary{% endif %}" style="font-size:20px; font-variation-settings:'FILL'{% if listing.is_favorited %}1{% else %}0{% endif %};">favorite</span>
                 </button>
             </form>
         </div>
         {% endif %}
-
-        <a href="{% url 'listing_detail' listing.pk %}">
-            <div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
-                 {% if listing.primary_image_url %}
-                 style="background-image: url('{{ listing.primary_image_url }}')"
-                 {% endif %}>
-            </div>
-        </a>
     </div>
     <div class="p-md">
-        <div class="mb-xs">
-            <span class="text-primary font-h4 font-price-display">{{ listing.price|floatformat:0|intcomma }} EGP</span>
-        </div>
         <a href="{% url 'listing_detail' listing.pk %}">
-            <h3 class="text-h4 font-h4 text-primary truncate hover:text-secondary transition-colors">{{ listing.title }}</h3>
+            <h3 class="text-h4 font-h4 text-primary group-hover:text-secondary transition-colors truncate">{{ listing.title }}</h3>
         </a>
-        <p class="flex items-center gap-xs text-on-surface-variant text-body-md mb-md">
-            <span class="material-symbols-outlined text-outline text-[18px]">location_on</span>
-            {% if listing.address %}{{ listing.address }}{% else %}{{ listing.city|title }}{% endif %}
+        <p class="text-on-surface-variant text-label-sm mb-md flex items-center gap-xs">
+            <span class="material-symbols-outlined text-[16px]">location_on</span>
+            {{ listing.city|title }}{% if listing.address %}, {{ listing.address }}{% endif %}
         </p>
-        <a href="{% url 'listing_detail' listing.pk %}" class="w-full py-sm border border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-on-primary transition-all flex items-center justify-center">
-            View Details
-        </a>
+        <div class="flex gap-md mb-md">
+            {% if listing.bedrooms %}
+            <div class="flex items-center gap-xs text-on-surface-variant">
+                <span class="material-symbols-outlined text-[18px]">bed</span>
+                <span class="text-label-sm">{{ listing.bedrooms }}</span>
+            </div>
+            {% endif %}
+            {% if listing.bathrooms %}
+            <div class="flex items-center gap-xs text-on-surface-variant">
+                <span class="material-symbols-outlined text-[18px]">bathtub</span>
+                <span class="text-label-sm">{{ listing.bathrooms }}</span>
+            </div>
+            {% endif %}
+            {% if listing.area %}
+            <div class="flex items-center gap-xs text-on-surface-variant">
+                <span class="material-symbols-outlined text-[18px]">square_foot</span>
+                <span class="text-label-sm">{{ listing.area }}m²</span>
+            </div>
+            {% endif %}
+        </div>
+        <div class="flex items-center justify-between pt-sm border-t border-outline-variant">
+            <span class="text-price-display font-price-display text-primary">{{ listing.price|floatformat:0|intcomma }} EGP</span>
+        </div>
     </div>
 </div>

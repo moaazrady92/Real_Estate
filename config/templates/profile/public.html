@@ -1,58 +1,121 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ profile_user.display_name|default:profile_user.first_name }} | LUXOR ESTATE{% endblock %}
+{% block title %}{{ profile_user.display_name|default:profile_user.first_name }} | Luxor Estate Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-mesh {
+        background: radial-gradient(circle at 100% 0%, rgba(198, 165, 85, 0.15) 0%, transparent 50%),
+                    radial-gradient(circle at 0% 100%, rgba(198, 165, 85, 0.08) 0%, transparent 50%);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-container-max mx-auto px-base md:px-xl py-lg">
-    <div class="flex flex-col lg:flex-row gap-lg">
+<main class="relative">
 
-        <aside class="w-full lg:w-80 shrink-0">
-            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md text-center sticky top-32">
-                {% if profile_user.profile_picture %}
-                <img src="{{ profile_user.profile_picture.url }}" alt="" class="w-24 h-24 rounded-full mx-auto object-cover mb-sm border-2 border-primary/30"/>
-                {% else %}
-                <div class="w-24 h-24 rounded-full mx-auto mb-sm bg-primary/10 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-[48px] text-primary">person</span>
+    <!-- Profile Hero -->
+    <section class="relative pt-xl pb-lg overflow-hidden bg-surface-container-low">
+        <div class="absolute inset-0 profile-mesh pointer-events-none"></div>
+        <div class="max-w-container-max mx-auto px-base md:px-xl relative z-10">
+            <div class="flex flex-col md:flex-row items-center md:items-start gap-lg">
+
+                <div class="relative">
+                    <div class="w-40 h-40 md:w-48 md:h-48 rounded-full border-4 border-primary/30 shadow-lg overflow-hidden bg-surface-container">
+                        {% if profile_user.profile_picture %}
+                        <img class="w-full h-full object-cover" src="{{ profile_user.profile_picture.url }}" alt=""/>
+                        {% else %}
+                        <div class="w-full h-full flex items-center justify-center bg-primary/10">
+                            <span class="material-symbols-outlined text-[56px] text-primary">person</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if profile_user.role == 'seller' %}
+                    <div class="absolute bottom-2 right-2 bg-secondary text-on-secondary px-sm py-xs rounded-full shadow-md flex items-center gap-xs">
+                        <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL'1;">verified</span>
+                        <span class="text-label-sm font-label-sm">Verified Agent</span>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
 
-                <h1 class="text-h4 font-h4 text-on-surface">{{ profile_user.display_name|default:profile_user.first_name }}</h1>
-                <p class="text-body-md text-on-surface-variant mb-sm">{{ profile_user.first_name }} {{ profile_user.last_name }}</p>
+                <div class="flex-1 text-center md:text-left">
+                    <div class="mb-sm">
+                        <h1 class="text-h1 font-h1 text-primary">{{ profile_user.display_name|default:profile_user.first_name }} {{ profile_user.last_name }}</h1>
+                        <p class="text-on-surface-variant text-body-md max-w-2xl mt-xs">
+                            {% if profile_user.bio %}
+                            {{ profile_user.bio }}
+                            {% elif profile_user.role == 'seller' %}
+                            Professional real estate agent specializing in premium properties across Egypt.
+                            {% else %}
+                            Home buyer exploring the Egyptian real estate market.
+                            {% endif %}
+                        </p>
+                    </div>
 
-                <span class="px-sm py-xs rounded-lg text-label-sm uppercase {% if profile_user.role == 'seller' %}bg-primary-container text-on-primary-container{% else %}bg-primary/10 text-primary{% endif %} inline-block mb-md">
-                    {{ profile_user.role|title }}
-                </span>
-
-                {% if profile_user.bio %}
-                <p class="text-body-md text-on-surface-variant mt-md text-left leading-relaxed">{{ profile_user.bio }}</p>
-                {% endif %}
+                    <div class="flex flex-wrap justify-center md:justify-start gap-md mt-md">
+                        <div class="bg-surface-container-lowest border border-outline-variant px-md py-sm rounded-xl text-center min-w-[120px]">
+                            <span class="block text-h3 font-h3 text-primary">{{ listings_count }}</span>
+                            <span class="text-label-sm font-label-sm text-on-surface-variant">Active Listings</span>
+                        </div>
+                        {% if profile_user.role == 'seller' %}
+                        <div class="bg-surface-container-lowest border border-outline-variant px-md py-sm rounded-xl text-center min-w-[120px]">
+                            <span class="block text-h3 font-h3 text-primary">{{ avg_rating|default:"N/A" }}</span>
+                            <span class="text-label-sm font-label-sm text-on-surface-variant">Rating</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-        </aside>
+        </div>
+    </section>
 
-        <div class="flex-1">
-            <div class="flex items-end justify-between mb-lg">
+    <!-- Listings Section -->
+    {% if listings.exists %}
+    <section class="py-xl bg-surface-container-lowest">
+        <div class="max-w-container-max mx-auto px-base md:px-xl">
+            <div class="flex items-center justify-between mb-lg">
                 <div>
-                    <h2 class="text-h2 font-h2 text-primary">
-                        {% if profile_user.role == 'seller' %}Listings by{% else %}Profile of{% endif %}
-                        {{ profile_user.first_name }}
-                    </h2>
-                    <p class="text-body-md text-on-surface-variant">{{ listings.count }} properties</p>
+                    <h2 class="text-h2 font-h2 text-primary">Active Portfolio</h2>
+                    <p class="text-on-surface-variant mt-xs">
+                        {% if profile_user.role == 'seller' %}
+                        Curated properties by {{ profile_user.first_name }}
+                        {% else %}
+                        Properties liked by {{ profile_user.first_name }}
+                        {% endif %}
+                    </p>
                 </div>
             </div>
 
-            {% if listings.exists %}
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-md">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
                 {% for listing in listings %}
                     {% include 'includes/property_card.html' with listing=listing %}
                 {% endfor %}
             </div>
-            {% else %}
-            <div class="text-center py-xl bg-surface-container-lowest border border-outline-variant rounded-xl">
-                <span class="material-symbols-outlined text-[48px] text-outline">home_work</span>
-                <p class="text-body-md text-on-surface-variant mt-sm">No listings yet.</p>
-            </div>
-            {% endif %}
         </div>
-    </div>
-</div>
+    </section>
+    {% endif %}
+
+    <!-- Areas of Expertise -->
+    {% if city_counts %}
+    <section class="py-xl bg-surface-container">
+        <div class="max-w-container-max mx-auto px-base md:px-xl">
+            <h3 class="text-h3 font-h3 text-primary mb-lg">Areas of Expertise</h3>
+            <div class="flex flex-wrap gap-md">
+                {% for city, count in city_counts.items %}
+                <div class="flex items-center gap-sm bg-surface-container-lowest p-md rounded-xl border border-outline-variant flex-1 min-w-[200px]">
+                    <div class="w-12 h-12 rounded-lg bg-primary-fixed flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">location_city</span>
+                    </div>
+                    <div>
+                        <span class="block font-bold text-primary">{{ city|title }}</span>
+                        <span class="text-label-sm text-on-surface-variant">{{ count }} Listing{{ count|pluralize }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+</main>
 {% endblock %}

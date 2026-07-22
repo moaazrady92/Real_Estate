@@ -178,7 +178,16 @@ def listing_detail(request, pk):
             user=request.user, listing=listing
         ).exists()
 
-    return render(request, "listings/detail.html", {"listing": listing})
+    similar_listings = Listing.objects.filter(
+        is_active=True, city=listing.city
+    ).exclude(pk=listing.pk).prefetch_related("images").annotate(
+        image_count=Count("images")
+    ).order_by("-image_count", "-created_at")[:3]
+
+    return render(request, "listings/detail.html", {
+        "listing": listing,
+        "similar_listings": similar_listings,
+    })
 
 
 @login_required
