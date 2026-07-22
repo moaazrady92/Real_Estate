@@ -21,6 +21,7 @@ urlpatterns = [
     path("profile/", user_views.profile_view, name="profile"),
     path("profile/<int:pk>/", user_views.public_profile_view, name="public_profile"),
     path("password-reset/", user_views.password_reset_view, name="password_reset"),
+    path("favorites/<int:listing_id>/toggle/", fav_views.toggle_favorite, name="toggle_favorite"),
 
     # API URLs
     path("admin/", admin.site.urls),
