@@ -37,6 +37,7 @@ class User(AbstractUser):
     bio = models.TextField(blank=True)
     profile_picture = models.ImageField(upload_to="profile_pics/", blank=True, null=True)
     phone_number = models.CharField(max_length=20)
+    whatsapp = models.CharField(max_length=100, blank=True, default="")
     role = models.CharField(max_length=10, choices=Role.choices)
     national_id = models.CharField(max_length=14, blank=True)
 

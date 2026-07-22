@@ -10,50 +10,48 @@
                  {% endif %}>
             </div>
         </a>
-        <div class="absolute top-md left-md bg-white/90 backdrop-blur px-sm py-xs rounded text-label-sm font-label-sm text-primary capitalize">
+        <div class="absolute top-sm left-sm bg-white/90 backdrop-blur px-sm py-[2px] rounded text-label-sm text-primary capitalize text-[11px]">
             {{ listing.source|default:"Manual" }}
         </div>
         {% if user.is_authenticated %}
-        <div class="absolute bottom-md right-md z-10">
+        <div class="absolute bottom-sm right-sm z-10">
             <form method="POST" action="{% url 'toggle_favorite' listing.pk %}">
                 {% csrf_token %}
-                <button type="submit" class="w-9 h-9 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all shadow-sm">
-                    <span class="material-symbols-outlined {% if listing.is_favorited %}text-error{% else %}text-primary{% endif %}" style="font-size:20px; font-variation-settings:'FILL'{% if listing.is_favorited %}1{% else %}0{% endif %};">favorite</span>
+                <button type="submit" class="w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all shadow-sm">
+                    <span class="material-symbols-outlined {% if listing.is_favorited %}text-error{% else %}text-primary{% endif %}" style="font-size:18px; font-variation-settings:'FILL'{% if listing.is_favorited %}1{% else %}0{% endif %};">favorite</span>
                 </button>
             </form>
         </div>
         {% endif %}
     </div>
-    <div class="p-md">
+    <div class="p-sm">
         <a href="{% url 'listing_detail' listing.pk %}">
-            <h3 class="text-h4 font-h4 text-primary group-hover:text-secondary transition-colors truncate">{{ listing.title }}</h3>
+            <h3 class="text-body-md font-semibold text-primary group-hover:text-secondary transition-colors truncate leading-tight">{{ listing.title }}</h3>
         </a>
-        <p class="text-on-surface-variant text-label-sm mb-md flex items-center gap-xs">
-            <span class="material-symbols-outlined text-[16px]">location_on</span>
-            {{ listing.city|title }}{% if listing.address %}, {{ listing.address }}{% endif %}
+        <p class="text-on-surface-variant text-[12px] flex items-center gap-xs mt-[2px] mb-sm">
+            <span class="material-symbols-outlined text-[14px]">location_on</span>
+            {{ listing.city|title }}
         </p>
-        <div class="flex gap-md mb-md">
+        <div class="flex items-center gap-sm mb-xs">
             {% if listing.bedrooms %}
-            <div class="flex items-center gap-xs text-on-surface-variant">
-                <span class="material-symbols-outlined text-[18px]">bed</span>
-                <span class="text-label-sm">{{ listing.bedrooms }}</span>
-            </div>
+            <span class="text-[12px] text-on-surface-variant flex items-center gap-[2px]">
+                <span class="material-symbols-outlined text-[14px]">bed</span>
+                {{ listing.bedrooms }}
+            </span>
             {% endif %}
             {% if listing.bathrooms %}
-            <div class="flex items-center gap-xs text-on-surface-variant">
-                <span class="material-symbols-outlined text-[18px]">bathtub</span>
-                <span class="text-label-sm">{{ listing.bathrooms }}</span>
-            </div>
+            <span class="text-[12px] text-on-surface-variant flex items-center gap-[2px]">
+                <span class="material-symbols-outlined text-[14px]">bathtub</span>
+                {{ listing.bathrooms }}
+            </span>
             {% endif %}
             {% if listing.area %}
-            <div class="flex items-center gap-xs text-on-surface-variant">
-                <span class="material-symbols-outlined text-[18px]">square_foot</span>
-                <span class="text-label-sm">{{ listing.area }}m²</span>
-            </div>
+            <span class="text-[12px] text-on-surface-variant flex items-center gap-[2px]">
+                <span class="material-symbols-outlined text-[14px]">square_foot</span>
+                {{ listing.area }}
+            </span>
             {% endif %}
         </div>
-        <div class="flex items-center justify-between pt-sm border-t border-outline-variant">
-            <span class="text-price-display font-price-display text-primary">{{ listing.price|floatformat:0|intcomma }} EGP</span>
-        </div>
+        <div class="text-price-display font-price-display text-primary text-[16px]">{{ listing.price|floatformat:0|intcomma }} EGP</div>
     </div>
 </div>

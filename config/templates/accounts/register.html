@@ -70,9 +70,10 @@
                     <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="email" name="email" placeholder="omar.mansour@example.com" required type="email" value="{{ form.email.value|default:'' }}"/>
                 </div>
 
-                <div class="flex flex-col gap-xs">
-                    <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="phone_number">Phone Number</label>
-                    <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="phone_number" name="phone_number" placeholder="+20 1XX XXX XXXX" required type="tel" value="{{ form.phone_number.value|default:'' }}"/>
+                <!-- Seller-only: WhatsApp -->
+                <div class="hidden peer-checked/seller:flex flex-col gap-xs">
+                    <label class="text-label-sm font-label-sm uppercase text-on-surface-variant" for="whatsapp">WhatsApp Number</label>
+                    <input class="w-full px-md py-sm rounded border border-outline focus:border-primary focus:ring-0 outline-none transition-all bg-white" id="whatsapp" name="whatsapp" placeholder="+201234567890" type="text"/>
                 </div>
 
                 <!-- Seller-only: national ID -->
