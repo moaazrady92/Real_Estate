@@ -35,28 +35,16 @@
         <div class="bento-grid">
             {% if images %}
             <a href="{% url 'listing_detail' listing.pk %}" class="col-span-2 row-span-2 relative overflow-hidden rounded-xl cursor-pointer group">
-                <div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                     {% with first=images.first %}
-                     {% if first.image_url %}
-                     style="background-image: url('{{ first.image_url }}')"
-                     {% elif first.image %}
-                     style="background-image: url('{{ first.image.url }}')"
-                     {% endif %}
-                     {% endwith %}>
-                </div>
+                {% with first=images.first %}
+                <img src="{% if first.image_url %}{{ first.image_url }}{% elif first.image %}{{ first.image.url }}{% endif %}" alt="" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"/>
+                {% endwith %}
                 <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
             </a>
 
             {% for image in images|slice:"1:5" %}
             {% if forloop.counter <= 4 %}
             <a href="{% url 'listing_detail' listing.pk %}" class="relative overflow-hidden rounded-xl cursor-pointer group {% if forloop.counter == 4 %}col-span-2 md:col-span-1{% endif %}">
-                <div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                     {% if image.image_url %}
-                     style="background-image: url('{{ image.image_url }}')"
-                     {% elif image.image %}
-                     style="background-image: url('{{ image.image.url }}')"
-                     {% endif %}>
-                </div>
+                <img src="{% if image.image_url %}{{ image.image_url }}{% elif image.image %}{{ image.image.url }}{% endif %}" alt="" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"/>
             </a>
             {% endif %}
             {% endfor %}

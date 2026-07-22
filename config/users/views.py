@@ -226,7 +226,7 @@ def register_view(request):
         first_name = request.POST.get("first_name", "").strip()
         last_name = request.POST.get("last_name", "").strip()
         email = request.POST.get("email", "").strip()
-        whatsapp = request.POST.get("whatsapp", "").strip()
+        phone_number = request.POST.get("phone_number", "").strip()
         password = request.POST.get("password", "")
         password_confirm = request.POST.get("password_confirm", "")
         role = request.POST.get("role", "buyer")
@@ -241,6 +241,8 @@ def register_view(request):
             errors["email"] = ["Email is required."]
         elif User.objects.filter(email=email).exists():
             errors["email"] = ["A user with this email already exists."]
+        if not phone_number:
+            errors["phone_number"] = ["Phone number is required."]
         if len(password) < 8:
             errors["password"] = ["Password must be at least 8 characters."]
         if password != password_confirm:
@@ -255,8 +257,7 @@ def register_view(request):
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
-                phone_number=whatsapp or "00000000000",
-                whatsapp=whatsapp,
+                phone_number=phone_number,
                 role=role,
                 national_id=national_id,
             )
@@ -267,7 +268,7 @@ def register_view(request):
             return redirect("home")
 
         return render(request, "accounts/register.html", {
-            "form": type("Form", (), {"errors": errors, "first_name": type("F", (), {"value": lambda: first_name})(), "last_name": type("F", (), {"value": lambda: last_name})(), "email": type("F", (), {"value": lambda: email})(), "national_id": type("F", (), {"value": lambda: national_id})(), "password": type("F", (), {"value": lambda: ""})(), "password_confirm": type("F", (), {"value": lambda: ""})()}),
+            "form": type("Form", (), {"errors": errors, "first_name": type("F", (), {"value": lambda: first_name})(), "last_name": type("F", (), {"value": lambda: last_name})(), "email": type("F", (), {"value": lambda: email})(), "phone_number": type("F", (), {"value": lambda: phone_number})(), "national_id": type("F", (), {"value": lambda: national_id})(), "password": type("F", (), {"value": lambda: ""})(), "password_confirm": type("F", (), {"value": lambda: ""})()}),
         })
 
     return render(request, "accounts/register.html")
