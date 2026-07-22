@@ -7,15 +7,15 @@
 <style>
     .bento-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: repeat(2, 200px);
-        gap: 12px;
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-rows: repeat(2, 80px);
+        gap: 6px;
     }
-    @media (max-width: 768px) {
-        .bento-grid {
-            grid-template-columns: 1fr;
-            grid-template-rows: auto;
-        }
+    @media (min-width: 768px) {
+        .bento-grid { grid-template-rows: repeat(2, 100px); }
+    }
+    @media (max-width: 767px) {
+        .bento-grid { grid-template-columns: repeat(3, 1fr); grid-template-rows: auto; }
     }
 </style>
 {% endblock %}
